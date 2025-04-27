@@ -14,7 +14,7 @@ This module provides basic user login and registration functions, and is designe
 
 | 参数名   |Type| 是否必填 | 说明     |
 |----------|----------|----------|----------|
-| username | `string` | 是       | 用户名   |
+| username | `string` | 是       | 手机号、姓名   |
 | password | `string` | 是       | 密码     |
 
 #### Sample request body
