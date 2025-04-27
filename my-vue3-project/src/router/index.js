@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import 'element-plus/dist/index.css';
 // 导入组件
 import LoginPage from '../components/Login.vue';
-import UserPage from '../components/UserPage.vue';
+
 import PatientManage from '../components/PatientManage.vue';
 import PatientPage from '../components/PatientPage.vue'; // 确保这里是正确的文件名
 import AdminPage from '../components/AdminPage.vue'; // 确保这里是正确的文件名
@@ -14,11 +14,7 @@ const routes = [
     name: 'login',
     component: LoginPage,
   },
-  {
-    path: '/user',
-    name: 'user',
-    component: UserPage,
-  },
+
   {
     path: '/doctor/:doctorId/patients', // 修改为动态路由，根据医生 ID 展示患者
     name: 'PatientManage',

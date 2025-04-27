@@ -35,7 +35,6 @@
   "status": 200,
   "data": {
     "id": "101",
-    "username": "doctor1",
     "isAdmin": false,
     "isDoctor": true,
     "isPatient": false,
@@ -214,7 +213,6 @@
   "data": [
     {
       "id": "1",
-      "username": "zhangsan",
       "name": "张三",
       "phone": "13800001111",
       "hospital": "北京协和医院",
@@ -222,7 +220,6 @@
     },
     {
       "id": "2",
-      "username": "lisi",
       "name": "李四",
       "phone": "13800002222",
       "hospital": "上海瑞金医院",
@@ -246,7 +243,6 @@
 | 字段        | 类型     | 描述                    |
 |-------------|----------|-------------------------|
 | `id`        | string   | 医生唯一 ID              |
-| `username`  | string   | 用户名                   |
 | `name`      | string   | 姓名                     |
 | `phone`     | string   | 电话号码                 |
 | `hospital`  | string   | 所在医院                 |
@@ -266,7 +262,7 @@
 
 ```json
 {
-  "username": "zhangsan",
+
   "password": "123456",
   "name": "张三",
   "phone": "13812345678",
@@ -282,7 +278,7 @@
   "status": 201,
   "data": {
     "id": "3",
-    "username": "zhangsan",
+
     "name": "张三",
     "phone": "13812345678",
     "hospital": "Beijing General Hospital",
@@ -296,7 +292,7 @@
 | Field        | Type     | Description        |
 |--------------|----------|--------------------|
 | `id`         | string   | Unique doctor ID    |
-| `username`   | string   | Username            |
+
 | `name`       | string   | Doctor's name       |
 | `phone`      | string   | Phone number        |
 | `hospital`   | string   | Hospital name       |

@@ -10,9 +10,6 @@
       <!-- 注册医生 -->
       <el-divider content-position="left">注册医生</el-divider>
       <el-form :inline="true" :model="registerForm" class="form">
-        <el-form-item label="用户名">
-          <el-input v-model="registerForm.username" placeholder="医生用户名" />
-        </el-form-item>
         <el-form-item label="密码">
           <el-input v-model="registerForm.password" type="password" placeholder="医生密码" />
         </el-form-item>
@@ -81,8 +78,6 @@
       <!-- 已注册医生列表 -->
       <el-divider content-position="left" style="margin-top: 30px;">已注册医生账户</el-divider>
       <el-table :data="doctors" style="width: 100%" :loading="doctorsLoading" key="doctorsTable">
-        <el-table-column prop="id" label="ID" />
-        <el-table-column prop="username" label="用户名" />
         <el-table-column prop="name" label="姓名" />
         <el-table-column prop="phone" label="电话" />
         <el-table-column prop="hospital" label="医院" />
@@ -102,10 +97,9 @@ const doctors = ref([]);
 const patients = ref([]);
 const relationForm = reactive({ doctorId: null, patientId: null, doctorName: '', patientName: '' });
 
-const registerForm = reactive({
-  username: "",
-  password: "",
+const registerForm = reactive({  
   name: "",
+  password: "",
   phone: "",
   hospital: "",
   department: ""
@@ -120,7 +114,7 @@ const deleteLoading = ref({});
 
 // 注册医生
 const registerDoctor = async () => {
-  if (!registerForm.username || !registerForm.password || !registerForm.name || !registerForm.phone || !registerForm.hospital || !registerForm.department) {
+  if (!registerForm.password || !registerForm.name || !registerForm.phone || !registerForm.hospital || !registerForm.department) {
     ElMessage.warning("所有字段均不能为空！");
     return;
   }
@@ -130,7 +124,7 @@ const registerDoctor = async () => {
     if (response.data && response.data.status === 201) {
       ElMessage.success("医生注册成功！");
       await fetchDoctors();
-      Object.assign(registerForm, { username: "", password: "", name: "", phone: "", hospital: "", department: "" });
+      Object.assign(registerForm, { password: "", name: "", phone: "", hospital: "", department: "" });
     } else if (response.data && response.data.status === 409) {
       ElMessage.warning(response.data.message || "用户名已存在！");
     } else {
