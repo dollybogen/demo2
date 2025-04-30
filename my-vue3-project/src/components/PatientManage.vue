@@ -5,6 +5,20 @@
         <h2>患者管理 </h2>
 
       </el-header>
+      <el-divider content-position="left">添加医患关系</el-divider>
+      <el-form :inline="true" :model="relationForm" class="form">
+        <el-form-item label="患者">
+          <el-select v-model="relationForm.patientId" placeholder="选择患者" style="width: 200px;">
+            <el-option v-for="item in patients" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+          <div v-if="relationForm.patientName" style="margin-top: 5px; color: #67c23a;">
+            已选择患者：{{ relationForm.patientName }}
+          </div>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" :loading="addRelationLoading" @click="addRelation">添加</el-button>
+        </el-form-item>
+      </el-form>
 
       <el-main class="main-content">
         <el-row :gutter="20">
@@ -120,7 +134,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+
+import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 //import Papa from 'papaparse';
 import { useRouter, useRoute } from 'vue-router';
@@ -156,6 +171,49 @@ const filteredPatients = computed(() => {
   );
 });
 
+const relationForm = ref({
+  doctorId: doctorId.value,
+  patientId: null,
+  patientName: ''
+});
+const addRelationLoading = ref(false);
+
+watch(() => relationForm.value.patientId, (newVal) => {
+  const selected = patients.value.find(p => p.id === newVal);
+  relationForm.value.patientName = selected ? selected.name : '';
+});
+
+const addRelation = async () => {
+  if (!relationForm.value.doctorId || !relationForm.value.patientId) {
+    ElMessage.warning("请选择患者！");
+    return;
+  }
+  addRelationLoading.value = true;
+  try {
+    const response = await axios.post('/api/admin/relations', {
+      doctorId: relationForm.value.doctorId,
+      patientId: relationForm.value.patientId
+    });
+    if (response.data && response.data.status === 201) {
+      ElMessage.success("关系添加成功！");
+      Object.assign(relationForm.value, {
+        patientId: null,
+        patientName: ''
+      });
+    } else {
+      ElMessage.error("添加关系失败！");
+    }
+  } catch (error) {
+    console.error("添加关系失败:", error);
+    ElMessage.error("添加关系失败，请检查网络或服务器！");
+  } finally {
+    addRelationLoading.value = false;
+  }
+};
+
+
+
+
 // 生命周期钩子
 onMounted(() => {
   fetchPatients();
@@ -177,6 +235,8 @@ async function fetchPatients() {
     ElMessage.error('获取患者列表失败');
   }
 }
+
+
 
 function handleMeasureResult() {
   const { measureResult, patientId } = route.query;
