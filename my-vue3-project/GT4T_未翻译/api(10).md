@@ -728,7 +728,7 @@ Authorization: Bearer <token>
     "type": "最新评估",
     "summary": "最新步态评估，各项指标稳定。",
     "reportData": {
-      "正常幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "标准幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
       "运动幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
       "差异": [1,2,3,4,5,6,7,8,9,10,11,12]
     }
@@ -738,7 +738,7 @@ Authorization: Bearer <token>
     "type": "中期复查",
     "summary": "中期复查，左腿活动度有所改善。",
     "reportData": {
-      "正常幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "标准幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
       "运动幅度": [10,9,1,2,3,4,5,6,7,8,9,10],
       "差异": [100,100,1,0,100,1,2,3,5,9,13,66]
     }
@@ -765,9 +765,9 @@ Authorization: Bearer <token>
   | `type`     | string   | 报告类型（如初步评估）  |
   | `summary`  | string   | 报告摘要描述             |
   | `reportData`     | object   | 报告数据（包含指标数组） |
-    - `正常幅度`：`number[]`，12项指标  
+    - `标准幅度`：`number[]`，12项指标  
     - `运动幅度`：`number[]`，12项指标  
-    - `差异`：`number[]`，12项分数
+    - `差值`：`number[]`，12项分数
 
 - **排序说明：**
   - 接口默认按 `date` 字段降序排序（最新在前）
@@ -806,6 +806,7 @@ Authorization: Bearer <token>
 | 方法 | 接口路径         | 描述                       |
 |------|------------------|----------------------------|
 | POST | `/api/upload/csv` | 上传 IMU 数据 CSV 文件      |
+| put | `/api/report/:reportId` | 医生根据提供的 `reportId` 写入指定报告的类型 (`type`) 和概要 (`summary`) 信息。 |
 
 ---
 
@@ -831,7 +832,7 @@ POST /api/upload/csv HTTP/1.1
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary
 
 ------WebKitFormBoundary
-Content-Disposition: form-data; name="file"; filename="imu_data_2025-04-24.csv"
+Content-Disposition: form-data; name="file"; filename="imu_data_2025-04-24-06-05-31.csv"
 Content-Type: text/csv
 
 时间戳,设备ID,设备名称,AccX(g),AccY(g),AccZ(g),GyroX(°/s),GyroY(°/s),GyroZ(°/s),Roll(°),Pitch(°),Yaw(°)
@@ -854,9 +855,9 @@ Content-Disposition: form-data; name="patientId"
     "receivedAt": "2025-04-24T10:30:00.123Z",
     "reportId": "1",
     "reportData": {
-      "正常幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
+      "标准幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
       "运动幅度": [1,2,3,4,5,6,7,8,9,10,11,12],
-      "差异": [1,2,3,4,5,6,7,8,9,10,11,12]
+      "差值": [1,2,3,4,5,6,7,8,9,10,11,12]
     }
   },
   "message": "CSV 文件上传成功",
@@ -871,6 +872,13 @@ Content-Disposition: form-data; name="patientId"
 | message    | string   | 响应信息                       |
 | data       | object   | 返回的附加数据                 |
 | └─receivedAt | string | 后端接收到请求的时间戳（ISO格式） |
+| └─reportId | string | 生成的报告 ID                   |
+| └─reportData | object | 报告数据（包含指标数组）        |
+**数据字段说明：**
+| reportData | object | 报告数据（包含指标数组）        |
+| - `标准幅度`：`number[]`，12项指标
+| - `运动幅度`：`number[]`，12项指标
+| - `差值`：`number[]`，12项分数
 
 - **错误响应示例（400 Bad Request）：**
   
@@ -905,23 +913,76 @@ Content-Disposition: form-data; name="patientId"
 - Patient ID 校验： 后端应校验 patientId 是否有效存在。
 
 ---
+# 2.更新报告信息
 
-## 拦截器调试说明（前端开发用）
+## 接口路径
+- **路径：** `/api/report/:reportId`
 
-当前系统实现了 `window.fetch` 的拦截器用于前端模拟测试：
+## 请求方法
+- **方法：** `PUT`
 
-- 拦截 `POST /api/upload/csv` 请求，并返回模拟的 200 成功响应。
-- 模拟响应数据格式如下：
+## 描述
+- 根据提供的 `reportId` 更新指定报告的类型 (`type`) 和概要 (`summary`) 信息。
+
+## 请求参数
+
+### 路径参数
+| 参数名     | 类型   | 是否必须 | 描述             |
+|------------|--------|----------|------------------|
+| reportId   | string | 是       | 报告的唯一标识符 |
+
+### 请求体
+| 参数名     | 类型   | 是否必须 | 描述             |
+|------------|--------|----------|------------------|
+| type       | string | 是       | 报告类型         |
+| summary    | string | 是       | 报告概要         |
+
+## 请求示例
+
+```http
+PUT /api/report/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "最新评估",
+  "summary": "最新步态评估，各项指标稳定。"
+}
+```
+## 响应示例（200 OK）
 
 ```json
 {
-  "status": 200,  
+  "status": 200,
+  "message": "报告更新成功",
   "data": {
-    "receivedAt": "2025-04-24T10:00:00.000Z"
-  },
-  "message": "模拟：CSV 文件上传成功 (Fetch Interceptor)",
+    "reportId": "1",
+    "updatedFields": {
+      "type": "最新评估",
+      "summary": "最新步态评估，各项指标稳定。",
+      "updatedAt": "2025-05-06T11:45:00Z"
+    }
+  }
 }
 ```
+- **错误响应示例（400 Bad Request）：**
+  
+// 400 Bad Request (缺少参数)
+```json
+{ "status": 400, "data": null, "message": "请求错误：缺少必需的 patientId 参数" }
+```
+// 401 Unauthorized (未登录或令牌无效)
+```json
+{ "status": 401, "data": null, "message": "未授权访问" }
+```
+// 403 Forbidden (无权为该患者上传数据)
+```json
+{ "status": 403, "data": null, "message": "权限不足，无法为该患者上传数据" }
+```
+// 500 Internal Server Error (服务器处理文件出错)
+```json
+{ "status": 500, "data": null, "message": "服务器处理 CSV 文件时出错" }
+```
+
 
 用于前端调试时无须后端真实服务，可直接验证上传逻辑和用户提示。
 # 五.附加说明
