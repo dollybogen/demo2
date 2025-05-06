@@ -6,16 +6,16 @@
         <el-button
           type="primary"
           @click="connectSingleDevice"
-          :disabled="isConnecting || devices.length >= 6"
+          :disabled="isConnecting"
         >
-          {{ isConnecting ? "正在连接..." : `连接设备 (${devices.length}/6)` }}
+          {{ isConnecting ? "正在连接..." : `连接设备 (${devices.length})` }}
         </el-button>
 
         <el-button-group>
           <el-button
             type="success"
             @click="startDataCollection"
-            :disabled="devices.length < 6 || isCollecting"
+            :disabled="devices.length === 0 || isCollecting"
           >
             开始采集
           </el-button>
@@ -89,7 +89,7 @@
           <el-card>
             <template #header>
               <div class="card-header">
-                <span>IMU数据 (实时采集)</span>
+                <span>IMU数据 ({{ isCollecting ? '实时采集中...' : '已停止采集' }})</span>
                 <span class="data-count">共 {{ imuDataArray.count }} 条数据</span>
               </div>
             </template>
@@ -139,11 +139,12 @@
     </el-main>
   </el-container>
 </template>
+
 <script setup>
 import { ref, onBeforeUnmount, onMounted } from "vue";
 import { ElMessage, ElLoading } from "element-plus";
-import { useRoute } from 'vue-router'; // 引入 useRoute
-
+import { useRoute } from 'vue-router';
+import { throttle } from 'lodash-es';
 
 const SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
 const READ_CHAR_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
@@ -157,10 +158,11 @@ const isSending = ref(false);
 const patientId = ref(null);
 const route = useRoute();
 
-// 用于临时存储采集到的数据
-const rawImuData = ref([]);
+// 数据存储
+const rawImuData = ref([]); // 存储所有原始数据
+//const displayData = ref([]); // 用于显示的数据
 
-// 优化后的数据结构 - 用于显示的数据
+// 优化后的数据结构
 const imuDataArray = ref({
   data: [],
   pageSize: 100,
@@ -175,6 +177,16 @@ const imuDataArray = ref({
   }
 });
 
+// 节流更新显示数据 (200ms)
+const throttledUpdateDisplay = throttle(() => {
+  // 采集过程中只显示最近100条数据
+  const recentData = isCollecting.value 
+    ? rawImuData.value.slice(-100) 
+    : rawImuData.value;
+  
+  imuDataArray.value.data = recentData;
+}, 200);
+
 onMounted(() => {
   if (route.query.patientId) {
     patientId.value = route.query.patientId;
@@ -187,14 +199,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopAllDevices();
+  throttledUpdateDisplay.cancel();
 });
 
 async function connectSingleDevice() {
-  if (devices.value.length >= 6) {
-    ElMessage.warning("已连接6个设备，请开始采集数据！");
-    return;
-  }
-
   let loadingInstance;
   try {
     isConnecting.value = true;
@@ -275,10 +283,12 @@ function handleData(event, deviceId) {
 
     if (device.tempBytes.length === 20) {
       const data = processDataPacket(device.tempBytes, device);
-      // 将处理后的数据存储到临时数组中
       rawImuData.value.push(data);
       device.lastData = data;
       device.tempBytes = [];
+      
+      // 使用节流更新显示
+      throttledUpdateDisplay();
     }
   }
 }
@@ -321,13 +331,13 @@ function processDataPacket(bytes, device) {
 }
 
 function startDataCollection() {
-  if (devices.value.length < 6) {
-    ElMessage.warning("请先连接6个设备！");
+  if (devices.value.length === 0) {
+    ElMessage.warning("请先连接至少1个设备！");
     return;
   }
 
   isCollecting.value = true;
-  rawImuData.value = []; // 清空临时数据
+  rawImuData.value = [];
   imuDataArray.value.data = [];
   imuDataArray.value.currentPage = 0;
   ElMessage.success("开始采集数据...");
@@ -335,7 +345,7 @@ function startDataCollection() {
 
 function stopDataCollection() {
   isCollecting.value = false;
-  // 停止采集后，将临时数据更新到 imuDataArray
+  // 停止采集后更新全部数据
   imuDataArray.value.data = [...rawImuData.value];
   ElMessage.info(`已停止数据采集，共采集到 ${rawImuData.value.length} 条数据`);
 }
@@ -492,12 +502,6 @@ async function sendCsvToBackend() {
     formData.append("patientId", patientId.value);
 
     const uploadUrl = "/api/upload/csv";
-    console.log("发送请求到:", uploadUrl);
-    console.log("即将发送的 FormData:");
-    for (const pair of formData.entries()) {
-      console.log(pair[0] + ", " + pair[1]);
-    }
-
     const response = await fetch(uploadUrl, {
       method: "POST",
       body: formData,
@@ -530,6 +534,7 @@ function changePage(newPage) {
   imuDataArray.value.currentPage = newPage - 1;
 }
 </script>
+
 <style scoped>
 .app-container {
   height: 100vh;

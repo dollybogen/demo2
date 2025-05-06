@@ -56,8 +56,9 @@ const reports = ref([]);
 const selectedReportData = ref(null);
 const gaitColumns = ref(['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6']);
 const gaitDataRows = ref([
+  { name: '标准幅度', values: [] },
   { name: '运动幅度', values: [] },
-  { name: '得分', values: [] },
+  { name: '差值', values: [] },
 ]);
 
 // 计算属性
