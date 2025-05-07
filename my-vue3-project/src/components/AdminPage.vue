@@ -3,85 +3,85 @@
     <el-card class="admin-card" shadow="always">
       <template #header>
         <div class="card-header">
-          <h2>医生与患者关系管理</h2>
+          <h2>Doctor patient relationship management</h2>
         </div>
       </template>
 
-      <!-- 注册医生 -->
-      <el-divider content-position="left">注册医生</el-divider>
+      <!-- Register Doctor -->
+      <el-divider content-position="left">Register Doctor</el-divider>
       <el-form :inline="true" :model="registerForm" class="form">
-        <el-form-item label="密码">
-          <el-input v-model="registerForm.password" type="password" placeholder="医生密码" />
+        <el-form-item label="Password">
+          <el-input v-model="registerForm.password" type="password" placeholder="Doctor password" />
         </el-form-item>
-        <el-form-item label="姓名">
-          <el-input v-model="registerForm.name" placeholder="医生姓名" />
+        <el-form-item label="Name">
+          <el-input v-model="registerForm.name" placeholder="Doctor name" />
         </el-form-item>
-        <el-form-item label="电话">
-          <el-input v-model="registerForm.phone" placeholder="医生电话" />
+        <el-form-item label="Phone">
+          <el-input v-model="registerForm.phone" placeholder="Doctor phone" />
         </el-form-item>
-        <el-form-item label="医院">
-          <el-input v-model="registerForm.hospital" placeholder="所属医院" />
+        <el-form-item label="Hospital">
+          <el-input v-model="registerForm.hospital" placeholder="Affiliated hospital" />
         </el-form-item>
-        <el-form-item label="科室">
-          <el-input v-model="registerForm.department" placeholder="所属科室" />
+        <el-form-item label="Department">
+          <el-input v-model="registerForm.department" placeholder="Department" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="registerLoading" @click="registerDoctor">注册</el-button>
+          <el-button type="primary" :loading="registerLoading" @click="registerDoctor">Register</el-button>
         </el-form-item>
       </el-form>
 
-      <!-- 添加医生患者关系 -->
-      <el-divider content-position="left">添加医生-患者关系</el-divider>
+      <!-- Add Doctor-Patient Relationship -->
+      <el-divider content-position="left">Add Doctor-Patient Relationship</el-divider>
       <el-form :inline="true" :model="relationForm" class="form">
-        <el-form-item label="医生">
-          <el-select v-model="relationForm.doctorId" placeholder="选择医生" @change="handleDoctorChange">
+        <el-form-item label="Doctor">
+          <el-select v-model="relationForm.doctorId" placeholder="Select doctor" @change="handleDoctorChange">
             <el-option v-for="item in doctors" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
-          <div v-if="relationForm.doctorName" style="margin-top: 5px; color: #67c23a;">已选择医生：{{ relationForm.doctorName }}</div>
+          <div v-if="relationForm.doctorName" style="margin-top: 5px; color: #67c23a;">Selected doctor: {{ relationForm.doctorName }}</div>
         </el-form-item>
-        <el-form-item label="患者">
-          <el-select v-model="relationForm.patientId" placeholder="选择患者" @change="handlePatientChange">
+        <el-form-item label="Patient">
+          <el-select v-model="relationForm.patientId" placeholder="Select patient" @change="handlePatientChange">
             <el-option v-for="item in patients" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
-          <div v-if="relationForm.patientName" style="margin-top: 5px; color: #67c23a;">已选择患者：{{ relationForm.patientName }}</div>
+          <div v-if="relationForm.patientName" style="margin-top: 5px; color: #67c23a;">Selected patient: {{ relationForm.patientName }}</div>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="addRelationLoading" @click="addRelation">添加</el-button>
+          <el-button type="primary" :loading="addRelationLoading" @click="addRelation">Add</el-button>
         </el-form-item>
       </el-form>
 
-      <!-- 医生患者关系列表 -->
-      <el-divider content-position="left">医生-患者关系列表</el-divider>
+      <!-- Doctor-Patient Relationship List -->
+      <el-divider content-position="left">Doctor-Patient Relationship List</el-divider>
       <el-table :data="relations" style="width: 100%" :loading="relationsLoading" key="relationsTable">
-        <el-table-column prop="doctorName" label="医生">
+        <el-table-column prop="doctorName" label="Doctor">
           <template #default="scope">
-            <el-select v-model="scope.row.doctorId" placeholder="选择医生">
+            <el-select v-model="scope.row.doctorId" placeholder="Select doctor">
               <el-option v-for="item in doctors" :key="item.id" :label="item.name" :value="item.id" />
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column prop="patientName" label="患者">
+        <el-table-column prop="patientName" label="Patient">
           <template #default="scope">
-            <el-select v-model="scope.row.patientId" placeholder="选择患者">
+            <el-select v-model="scope.row.patientId" placeholder="Select patient">
               <el-option v-for="item in patients" :key="item.id" :label="item.name" :value="item.id" />
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150">
+        <el-table-column label="Actions" width="150">
           <template #default="scope">
-            <el-button size="small" type="primary" :loading="updateLoading[scope.$index]" @click="updateRelation(scope.$index, scope.row)">保存</el-button>
-            <el-button size="small" type="danger" :loading="deleteLoading[scope.$index]" @click="deleteRelation(scope.$index)">删除</el-button>
+            <el-button size="small" type="primary" :loading="updateLoading[scope.$index]" @click="updateRelation(scope.$index, scope.row)">Save</el-button>
+            <el-button size="small" type="danger" :loading="deleteLoading[scope.$index]" @click="deleteRelation(scope.$index)">Delete</el-button>
           </template>
         </el-table-column>
       </el-table>
 
-      <!-- 已注册医生列表 -->
-      <el-divider content-position="left" style="margin-top: 30px;">已注册医生账户</el-divider>
+      <!-- Registered Doctors List -->
+      <el-divider content-position="left" style="margin-top: 30px;">Registered Doctors</el-divider>
       <el-table :data="doctors" style="width: 100%" :loading="doctorsLoading" key="doctorsTable">
-        <el-table-column prop="name" label="姓名" />
-        <el-table-column prop="phone" label="电话" />
-        <el-table-column prop="hospital" label="医院" />
-        <el-table-column prop="department" label="科室" />
+        <el-table-column prop="name" label="Name" />
+        <el-table-column prop="phone" label="Phone" />
+        <el-table-column prop="hospital" label="Hospital" />
+        <el-table-column prop="department" label="Department" />
       </el-table>
     </el-card>
   </div>
@@ -97,7 +97,7 @@ const doctors = ref([]);
 const patients = ref([]);
 const relationForm = reactive({ doctorId: null, patientId: null, doctorName: '', patientName: '' });
 
-const registerForm = reactive({  
+const registerForm = reactive({
   name: "",
   password: "",
   phone: "",
@@ -112,60 +112,60 @@ const doctorsLoading = ref(false);
 const updateLoading = ref({});
 const deleteLoading = ref({});
 
-// 注册医生
+// Register doctor
 const registerDoctor = async () => {
   if (!registerForm.password || !registerForm.name || !registerForm.phone || !registerForm.hospital || !registerForm.department) {
-    ElMessage.warning("所有字段均不能为空！");
+    ElMessage.warning("All fields are required!");
     return;
   }
   registerLoading.value = true;
   try {
     const response = await axios.post('/api/admin/doctors', registerForm);
     if (response.data && response.data.status === 201) {
-      ElMessage.success("医生注册成功！");
+      ElMessage.success("Doctor registered successfully!");
       await fetchDoctors();
       Object.assign(registerForm, { password: "", name: "", phone: "", hospital: "", department: "" });
     } else if (response.data && response.data.status === 409) {
-      ElMessage.warning(response.data.message || "用户名已存在！");
+      ElMessage.warning(response.data.message || "Username already exists!");
     } else {
-      ElMessage.error("医生注册失败！");
+      ElMessage.error("Failed to register doctor!");
     }
   } catch (error) {
-    console.error("医生注册失败:", error);
-    ElMessage.error("医生注册失败，请检查网络或服务器！");
+    console.error("Failed to register doctor:", error);
+    ElMessage.error("Failed to register doctor, please check network or server!");
   } finally {
     registerLoading.value = false;
   }
 };
 
-// 添加医生患者关系
+// Add doctor-patient relationship
 const addRelation = async () => {
   if (!relationForm.doctorId || !relationForm.patientId) {
-    ElMessage.warning("请选择医生和患者！");
+    ElMessage.warning("Please select both doctor and patient!");
     return;
   }
   addRelationLoading.value = true;
   try {
     const response = await axios.post('/api/admin/relations', { doctorId: relationForm.doctorId, patientId: relationForm.patientId });
     if (response.data && response.data.status === 201) {
-      ElMessage.success("关系添加成功！");
+      ElMessage.success("Relationship added successfully!");
       await fetchRelations();
       Object.assign(relationForm, { doctorId: null, patientId: null, doctorName: '', patientName: '' });
     } else {
-      ElMessage.error("添加关系失败！");
+      ElMessage.error("Failed to add relationship!");
     }
   } catch (error) {
-    console.error("添加关系失败:", error);
-    ElMessage.error("添加关系失败，请检查网络或服务器！");
+    console.error("Failed to add relationship:", error);
+    ElMessage.error("Failed to add relationship, please check network or server!");
   } finally {
     addRelationLoading.value = false;
   }
 };
 
-// 更新关系
+// Update relationship
 const updateRelation = async (index, row) => {
   if (!row.doctorId || !row.patientId) {
-    ElMessage.warning("请选择医生和患者！");
+    ElMessage.warning("Please select both doctor and patient!");
     return;
   }
   updateLoading.value = { ...updateLoading.value, [index]: true };
@@ -176,27 +176,27 @@ const updateRelation = async (index, row) => {
       const updatedPatient = patients.value.find(p => p.id === row.patientId);
       relations.value[index] = {
         ...relations.value[index],
-        doctorName: updatedDoctor ? updatedDoctor.name : '未知医生',
-        patientName: updatedPatient ? updatedPatient.name : '未知患者'
+        doctorName: updatedDoctor ? updatedDoctor.name : 'Unknown doctor',
+        patientName: updatedPatient ? updatedPatient.name : 'Unknown patient'
       };
-      ElMessage.success("修改成功！");
+      ElMessage.success("Updated successfully!");
     } else {
-      ElMessage.error("修改失败！");
+      ElMessage.error("Failed to update!");
     }
   } catch (error) {
-    console.error("修改关系失败:", error);
-    ElMessage.error("修改失败，请检查网络或服务器！");
-  } finally {
+    console.error("Failed to update relationship:", error);
+    ElMessage.error("Failed to update, please check network or server!");
+    } finally {
     updateLoading.value = { ...updateLoading.value, [index]: false };
   }
 };
 
-// 删除关系
+// Delete relationship
 const deleteRelation = async (index) => {
   const relationToDelete = relations.value[index];
-  ElMessageBox.confirm(`确定要删除医生 "${relationToDelete.doctorName}" 和患者 "${relationToDelete.patientName}" 的关系吗?`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  ElMessageBox.confirm(`Are you sure to delete the relationship between doctor "${relationToDelete.doctorName}" and patient "${relationToDelete.patientName}"?`, 'Warning', {
+    confirmButtonText: 'Confirm',
+    cancelButtonText: 'Cancel',
     type: 'warning',
   }).then(async () => {
     deleteLoading.value = { ...deleteLoading.value, [index]: true };
@@ -204,20 +204,20 @@ const deleteRelation = async (index) => {
       const response = await axios.delete(`/api/admin/relations/${relationToDelete.id}`);
       if (response.data && response.data.status === 204) {
         relations.value.splice(index, 1);
-        ElMessage.success("删除成功！");
+        ElMessage.success("Deleted successfully!");
       } else {
-        ElMessage.error("删除失败！");
+        ElMessage.error("Failed to delete!");
       }
     } catch (error) {
-      console.error("删除关系失败:", error);
-      ElMessage.error("删除失败，请检查网络或服务器！");
+      console.error("Failed to delete relationship:", error);
+      ElMessage.error("Failed to delete, please check network or server!");
     } finally {
       deleteLoading.value = { ...deleteLoading.value, [index]: false };
     }
   }).catch(() => {});
 };
 
-// 辅助方法
+// Helper methods
 const handleDoctorChange = (doctorId) => {
   const selectedDoctor = doctors.value.find(doctor => doctor.id === doctorId);
   relationForm.doctorName = selectedDoctor ? selectedDoctor.name : '';
@@ -235,10 +235,10 @@ const fetchRelations = async () => {
     if (response.data && response.data.status === 200) {
       relations.value = response.data.data;
     } else {
-      ElMessage.error("加载关系失败！");
+      ElMessage.error("Failed to load relationships!");
     }
   } catch (error) {
-    ElMessage.error("加载关系失败，请检查网络或服务器！");
+    ElMessage.error("Failed to load relationships, please check network or server!");
   } finally {
     relationsLoading.value = false;
   }
@@ -251,10 +251,10 @@ const fetchDoctors = async () => {
     if (response.data && response.data.status === 200) {
       doctors.value = response.data.data;
     } else {
-      ElMessage.error("加载医生失败！");
+      ElMessage.error("Failed to load doctors!");
     }
   } catch (error) {
-    ElMessage.error("加载医生失败，请检查网络或服务器！");
+    ElMessage.error("Failed to load doctors, please check network or server!");
   } finally {
     doctorsLoading.value = false;
   }
@@ -266,10 +266,10 @@ const fetchPatients = async () => {
     if (response.data && response.data.status === 200) {
       patients.value = response.data.data.map(patient => ({ id: patient.id, name: patient.name }));
     } else {
-      ElMessage.error("加载患者失败！");
+      ElMessage.error("Failed to load patients!");
     }
   } catch (error) {
-    ElMessage.error("加载患者失败，请检查网络或服务器！");
+    ElMessage.error("Failed to load patients, please check network or server!");
   }
 };
 

@@ -1,14 +1,14 @@
 <template>
   <div class="patient-management-page">
     <div class="header">
-      <h2>患者步态分析报告</h2>
+      <h2>Patient Gait Analysis Report</h2>
     </div>
 
     <div class="content">
       <div class="search-bar">
         <el-input
           v-model="searchQuery"
-          placeholder="搜索历史记录 (日期/类型/摘要)"
+          placeholder="Search history (Date/Type/Summary)"
           clearable
           style="width: 300px;"
         />
@@ -16,16 +16,16 @@
 
       <div class="report-list-container">
         <el-table :data="filteredRecords" border stripe style="width: 100%" @row-click="showReportDetails">
-          <el-table-column prop="date" label="日期" sortable width="150" />
-          <el-table-column prop="type" label="报告类型" sortable width="180" />
-          <el-table-column prop="summary" label="摘要" min-width="200" />
+          <el-table-column prop="date" label="Date" sortable width="150" />
+          <el-table-column prop="type" label="Report Type" sortable width="180" />
+          <el-table-column prop="summary" label="Summary" min-width="200" />
         </el-table>
       </div>
 
       <div v-if="selectedReportData" class="report-details">
-        <h3>{{ selectedReportData.date }} - {{ selectedReportData.type }} 步态分析数据</h3>
+        <h3>{{ selectedReportData.date }} - {{ selectedReportData.type }} Gait Analysis Data</h3>
         <el-table :data="gaitDataTable" border stripe style="width: 100%">
-          <el-table-column prop="name" label="指标" width="180" />
+          <el-table-column prop="name" label="Metric" width="180" />
           <el-table-column
             v-for="(col, index) in gaitColumns"
             :key="index"
@@ -36,7 +36,7 @@
         </el-table>
       </div>
       <div v-else class="no-report-selected">
-        请点击表格中的报告查看详细数据。
+        Please click on a report in the table to view detailed data.
       </div>
     </div>
   </div>
@@ -49,18 +49,18 @@ import { useRoute } from 'vue-router';
 
 const route = useRoute();
 
-// 数据模型
+// Data models
 const searchQuery = ref('');
 const patientId = ref(route.params.id);
 const reports = ref([]);
 const selectedReportData = ref(null);
 const gaitColumns = ref(['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6']);
 const gaitDataRows = ref([
-  { name: '运动幅度', values: [] },
-  { name: '得分', values: [] },
+  { name: 'Range of Motion', values: [] },
+  { name: 'Score', values: [] },
 ]);
 
-// 计算属性
+// Computed properties
 const filteredRecords = computed(() => {
   return reports.value.filter((record) => {
     return (
@@ -71,7 +71,7 @@ const filteredRecords = computed(() => {
   });
 });
 
-// 表格数据格式化
+// Table data formatting
 const gaitDataTable = computed(() => {
   if (!selectedReportData.value) {
     return [];
@@ -87,7 +87,7 @@ const gaitDataTable = computed(() => {
   return data;
 });
 
-// 方法定义
+// Methods
 const showReportDetails = (row) => {
   selectedReportData.value = row;
 };
@@ -100,7 +100,7 @@ const fetchPatientReports = async () => {
       selectedReportData.value = reports.value[0];
     }
   } catch (error) {
-    console.error('获取患者报告失败:', error);
+    console.error('Failed to fetch patient reports:', error);
   }
 };
 
@@ -112,13 +112,13 @@ onMounted(() => {
 <style scoped>
 .patient-management-page {
   padding: 20px;
-  background-color: #f4f5f7; /* Light grey background */
+  background-color: #f4f5f7;
   min-height: 100vh;
   box-sizing: border-box;
 }
 
 .header {
-  background-color: #007bff; /* Primary blue color */
+  background-color: #007bff;
   color: white;
   padding: 15px;
   border-radius: 5px;
@@ -154,7 +154,7 @@ h2 {
 .report-details {
   margin-top: 20px;
   padding: 15px;
-  background-color: #e9ecef; /* Light grey background for details */
+  background-color: #e9ecef;
   border-radius: 5px;
 }
 
@@ -169,19 +169,19 @@ h3 {
 .no-report-selected {
   text-align: center;
   padding: 20px;
-  color: #6c757d; /* Muted grey color */
-  background-color: #f8f9fa; /* Very light grey */
+  color: #6c757d;
+  background-color: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 5px;
 }
 
-/* Element Plus specific styles (optional, adjust as needed) */
+/* Element Plus specific styles */
 .el-input {
   --el-input-focus-border-color: #007bff;
 }
 
 .el-table th.el-table__cell {
-  background-color: #f0f2f5 !important; /* Light background for table headers */
+  background-color: #f0f2f5 !important;
   color: #333;
   font-weight: 500;
 }

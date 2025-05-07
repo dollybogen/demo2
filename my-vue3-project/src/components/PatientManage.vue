@@ -2,21 +2,20 @@
   <div class="patient-manage">
     <el-container class="content-container">
       <el-header class="header">
-        <h2>患者管理 </h2>
-
+        <h2>Patient Management</h2>
       </el-header>
-      <el-divider content-position="left">添加医患关系</el-divider>
+      <el-divider content-position="left">Add Doctor-Patient Relationship</el-divider>
       <el-form :inline="true" :model="relationForm" class="form">
-        <el-form-item label="患者">
-          <el-select v-model="relationForm.patientId" placeholder="选择患者" style="width: 200px;">
+        <el-form-item label="Patient">
+          <el-select v-model="relationForm.patientId" placeholder="Select patient" style="width: 200px;">
             <el-option v-for="item in patients" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
           <div v-if="relationForm.patientName" style="margin-top: 5px; color: #67c23a;">
-            已选择患者：{{ relationForm.patientName }}
+            Selected patient: {{ relationForm.patientName }}
           </div>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="addRelationLoading" @click="addRelation">添加</el-button>
+          <el-button type="primary" :loading="addRelationLoading" @click="addRelation">Add</el-button>
         </el-form-item>
       </el-form>
 
@@ -25,7 +24,7 @@
           <el-col :span="24">
             <el-input
               v-model="searchQuery"
-              placeholder="搜索患者姓名..."
+              placeholder="Search patient name..."
               prefix-icon="Search"
               class="search-input"
             />
@@ -49,13 +48,13 @@
                     type="text"
                     @click="toggleDetails(patient.id)"
                   >
-                    {{ expandedPatients.includes(patient.id) ? '收起' : '详情' }}
+                    {{ expandedPatients.includes(patient.id) ? 'Collapse' : 'Details' }}
                   </el-button>
                   <el-button
                     type="text"
                     @click="measureDataAction(patient.id)"
                   >
-                    测量数据
+                    Measurement Data
                   </el-button>
                 </div>
               </div>
@@ -64,22 +63,22 @@
                 <el-collapse v-model="activePanel">
                   <el-collapse-item name="measurement">
                     <template #title>
-                      <span class="collapse-title">测量数据</span>
+                      <span class="collapse-title">Measurement Data</span>
                     </template>
-                    <el-button @click="showMeasurementData(patient.id)">查看3D数据</el-button>
+                    <el-button @click="showMeasurementData(patient.id)">View 3D Data</el-button>
                   </el-collapse-item>
 
                   <el-collapse-item name="history">
                     <template #title>
-                      <span class="collapse-title">历史数据</span>
+                      <span class="collapse-title">History Data</span>
                     </template>
-                    <el-button @click="showHistoryData(patient.id)">查看历史记录</el-button>
+                    <el-button @click="showHistoryData(patient.id)">View History Records</el-button>
                   </el-collapse-item>
                 </el-collapse>
 
                 <div v-if="currentPatientId === patient.id">
                   <div v-if="show3DData">
-                    <h4>3D测量数据</h4>
+                    <h4>3D Measurement Data</h4>
                     <el-image
                       style="width: 100%"
                       src="@/assets/3d-measurement.gif"
@@ -88,7 +87,7 @@
                   </div>
 
                   <div v-if="historyData.length">
-                    <h4>历史记录</h4>
+                    <h4>History Records</h4>
                     <el-timeline>
                       <el-timeline-item
                         v-for="(record, index) in historyData"
@@ -104,12 +103,12 @@
                             border
                           >
                             <el-table-column
-                              prop="运动幅度"
-                              label="运动幅度"
+                              prop="Range of Motion"
+                              label="Range of Motion"
                             />
                             <el-table-column
-                              prop="得分"
-                              label="得分"
+                              prop="Score"
+                              label="Score"
                             />
                           </el-table>
                         </el-card>
@@ -134,21 +133,19 @@
 </template>
 
 <script setup>
-
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
-//import Papa from 'papaparse';
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 
-// 路由和数据初始化
+// Router and data initialization
 const router = useRouter();
 const route = useRoute();
 
-// 获取 doctorId 路由参数
+// Get doctorId from route params
 const doctorId = ref(route.params.doctorId);
 
-// 响应式数据
+// Reactive data
 const searchQuery = ref('');
 const patients = ref([]);
 const expandedPatients = ref([]);
@@ -156,14 +153,13 @@ const show3DData = ref(false);
 const historyData = ref([]);
 const currentPatientId = ref(null);
 const progress = ref(0);
-//const allReports = ref([]);
 const expandedReports = ref([]);
 const activePanel = ref([]);
 
-// 计算属性
+// Computed properties
 const filteredPatients = computed(() => {
   if (!Array.isArray(patients.value)) {
-    console.error('patients.value 不是数组:', patients.value);
+    console.error('patients.value is not an array:', patients.value);
     return [];
   }
   return patients.value.filter(patient =>
@@ -185,7 +181,7 @@ watch(() => relationForm.value.patientId, (newVal) => {
 
 const addRelation = async () => {
   if (!relationForm.value.doctorId || !relationForm.value.patientId) {
-    ElMessage.warning("请选择患者！");
+    ElMessage.warning("Please select a patient!");
     return;
   }
   addRelationLoading.value = true;
@@ -195,48 +191,41 @@ const addRelation = async () => {
       patientId: relationForm.value.patientId
     });
     if (response.data && response.data.status === 201) {
-      ElMessage.success("关系添加成功！");
+      ElMessage.success("Relationship added successfully!");
       Object.assign(relationForm.value, {
         patientId: null,
         patientName: ''
       });
     } else {
-      ElMessage.error("添加关系失败！");
+      ElMessage.error("Failed to add relationship!");
     }
   } catch (error) {
-    console.error("添加关系失败:", error);
-    ElMessage.error("添加关系失败，请检查网络或服务器！");
+    console.error("Failed to add relationship:", error);
+    ElMessage.error("Failed to add relationship, please check network or server!");
   } finally {
     addRelationLoading.value = false;
   }
 };
 
-
-
-
-// 生命周期钩子
+// Lifecycle hooks
 onMounted(() => {
   fetchPatients();
-  //fetchCSVData();
   handleMeasureResult();
 });
 
-// 方法定义
+// Method definitions
 async function fetchPatients() {
   try {
-    // 使用 doctorId.value 从路由参数中获取医生 ID
     const res = await axios.get(`/api/doctors/${doctorId.value}/patients`);
     if (res.data.code === 200) {
       patients.value = Array.isArray(res.data.data) ? res.data.data : [];
     } else {
-      ElMessage.error('获取患者列表失败');
+      ElMessage.error('Failed to get patient list');
     }
   } catch (err) {
-    ElMessage.error('获取患者列表失败');
+    ElMessage.error('Failed to get patient list');
   }
 }
-
-
 
 function handleMeasureResult() {
   const { measureResult, patientId } = route.query;
@@ -252,11 +241,6 @@ function handleMeasureResult() {
     }
   }
 }
-
-/*function goBack() {
-  router.push({ name: 'user' });
-}
-*/
 
 function toggleDetails(patientId) {
   const index = expandedPatients.value.indexOf(patientId);
@@ -283,8 +267,8 @@ function showMeasurementData(patientId) {
 
 function showHistoryData(patientId) {
   router.push({
-    name: 'PatientPage', // 跳转到 PatientPage
-    params: { id: patientId }, // 通过动态路由参数传递患者 ID
+    name: 'PatientPage',
+    params: { id: patientId },
   });
 }
 
@@ -294,32 +278,6 @@ function measureDataAction(patientId) {
     query: { patientId },
   });
 }
-
-/*async function fetchCSVData() {
-  try {
-    const res = await axios.get('/sentiment_data.csv');
-    Papa.parse(res.data, {
-      header: true,
-      complete: (result) => {
-        allReports.value = result.data.map(item => ({
-          date: item.date,
-          type: item.type,
-          summary: item.summary,
-          data: {
-            '运动幅度': JSON.parse(item.运动幅度 || '[]'),
-            '得分': JSON.parse(item.得分 || '[]'),
-          },
-        }));
-      },
-      error: () => {
-        ElMessage.error('CSV解析失败');
-      },
-    });
-  } catch (err) {
-    ElMessage.error('CSV加载失败');
-  }
-}
-*/
 </script>
 
 <style scoped>

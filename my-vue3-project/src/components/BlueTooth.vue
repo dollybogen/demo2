@@ -1,14 +1,14 @@
 <template>
   <el-container class="app-container">
     <el-header class="app-header">
-      <h1>多设备IMU数据采集系统</h1>
+      <h1>Multi-device IMU Data Collection System</h1>
       <div class="header-actions">
         <el-button
           type="primary"
           @click="connectSingleDevice"
           :disabled="isConnecting || devices.length >= 6"
         >
-          {{ isConnecting ? "正在连接..." : `连接设备 (${devices.length}/6)` }}
+          {{ isConnecting ? "Connecting..." : `Connect Device (${devices.length}/6)` }}
         </el-button>
 
         <el-button-group>
@@ -17,14 +17,14 @@
             @click="startDataCollection"
             :disabled="devices.length < 6 || isCollecting"
           >
-            开始采集
+            Start Collection
           </el-button>
           <el-button
             type="warning"
             @click="stopDataCollection"
             :disabled="!isCollecting"
           >
-            停止采集
+            Stop Collection
           </el-button>
         </el-button-group>
 
@@ -34,14 +34,14 @@
             @click="exportToCSV"
             :disabled="imuDataArray.count === 0"
           >
-            导出CSV
+            Export CSV
           </el-button>
           <el-button
             type="danger"
             @click="clearData"
             :disabled="imuDataArray.count === 0"
           >
-            清空数据
+            Clear Data
           </el-button>
         </el-button-group>
 
@@ -50,7 +50,7 @@
           @click="sendCsvToBackend"
           :disabled="imuDataArray.count === 0 || isSending"
         >
-          {{ isSending ? '发送中...' : '发送到后端' }}
+          {{ isSending ? 'Sending...' : 'Send to Backend' }}
         </el-button>
       </div>
     </el-header>
@@ -61,19 +61,19 @@
           <el-card class="device-list">
             <template #header>
               <div class="card-header">
-                <span>已连接设备</span>
+                <span>Connected Devices</span>
                 <el-button type="text" @click="stopAllDevices" :disabled="devices.length === 0">
-                  断开全部
+                  Disconnect All
                 </el-button>
               </div>
             </template>
 
-            <el-empty v-if="devices.length === 0" description="未连接设备" />
+            <el-empty v-if="devices.length === 0" description="No devices connected" />
 
             <div v-else class="device-item" v-for="dev in devices" :key="dev.id">
               <div class="device-info">
                 <el-tag :type="dev.connected ? 'success' : 'danger'" size="small">
-                  {{ dev.connected ? '在线' : '离线' }}
+                  {{ dev.connected ? 'Online' : 'Offline' }}
                 </el-tag>
                 <span>{{ dev.name }}</span>
               </div>
@@ -85,71 +85,108 @@
           </el-card>
         </el-col>
 
-        <el-col :span="18">
-          <el-card>
-            <template #header>
-              <div class="card-header">
-                <span>IMU数据 (实时采集)</span>
-                <span class="data-count">共 {{ imuDataArray.count }} 条数据</span>
-              </div>
-            </template>
+       <el-col :span="18">
+  <el-card>
+    <template #header>
+      <div class="card-header">
+        <span>IMU Data (Real-time Collection)</span>
+        <span class="data-count">Total {{ imuDataArray.count }} records</span>
+      </div>
+    </template>
 
-            <el-table
-              :data="imuDataArray.visibleData"
-              border
-              height="500"
-              style="width: 100%"
-              v-loading="isCollecting"
-              :row-key="row => row.timestamp + row.deviceId"
-            >
-              <el-table-column prop="timestamp" label="时间" width="180" />
-              <el-table-column prop="deviceName" label="设备名称" width="120" />
+    <el-table
+      :data="imuDataArray.visibleData"
+      border
+      height="270"
+      style="width: 100%"
+      v-loading="isCollecting"
+      :row-key="row => row.timestamp + row.deviceId"
+    >
+      <!-- Table Columns -->
+      <el-table-column prop="timestamp" label="Time" width="180" />
+      <el-table-column prop="deviceName" label="Device Name" width="120" />
 
-              <el-table-column label="加速度(g)">
-                <el-table-column prop="AccX" label="X" width="90" />
-                <el-table-column prop="AccY" label="Y" width="90" />
-                <el-table-column prop="AccZ" label="Z" width="90" />
-              </el-table-column>
+      <el-table-column label="Acceleration(g)">
+        <el-table-column prop="AccX" label="X" width="90" />
+        <el-table-column prop="AccY" label="Y" width="90" />
+        <el-table-column prop="AccZ" label="Z" width="90" />
+      </el-table-column>
 
-              <el-table-column label="角速度(°/s)">
-                <el-table-column prop="GyroX" label="X" width="90" />
-                <el-table-column prop="GyroY" label="Y" width="90" />
-                <el-table-column prop="GyroZ" label="Z" width="90" />
-              </el-table-column>
+      <el-table-column label="Angular Velocity(°/s)">
+        <el-table-column prop="GyroX" label="X" width="90" />
+        <el-table-column prop="GyroY" label="Y" width="90" />
+        <el-table-column prop="GyroZ" label="Z" width="90" />
+      </el-table-column>
 
-              <el-table-column label="角度(°)">
-                <el-table-column prop="Roll" label="Roll" width="90" />
-                <el-table-column prop="Pitch" label="Pitch" width="90" />
-                <el-table-column prop="Yaw" label="Yaw" width="90" />
-              </el-table-column>
-            </el-table>
+      <el-table-column label="Angle(°)">
+        <el-table-column prop="Roll" label="Roll" width="90" />
+        <el-table-column prop="Pitch" label="Pitch" width="90" />
+        <el-table-column prop="Yaw" label="Yaw" width="90" />
+      </el-table-column>
+    </el-table>
 
-            <el-pagination
-              v-if="imuDataArray.count > imuDataArray.pageSize"
-              @current-change="changePage"
-              :current-page="imuDataArray.currentPage + 1"
-              :page-size="imuDataArray.pageSize"
-              layout="prev, pager, next"
-              :total="imuDataArray.count"
-              class="pagination"
-            />
-          </el-card>
-        </el-col>
+    <el-pagination
+      v-if="imuDataArray.count > imuDataArray.pageSize"
+      @current-change="changePage"
+      :current-page="imuDataArray.currentPage + 1"
+      :page-size="imuDataArray.pageSize"
+      layout="prev, pager, next"
+      :total="imuDataArray.count"
+      class="pagination"
+    />
+
+    <!-- New content area -->
+    <div style="display: flex; margin-top: 20px;">
+      <el-card style="flex: 1; margin-right: 20px;">
+<template #header>Amplitude Analysis</template>
+        <div style="padding: 20px; max-height: 100px; overflow-y: auto;">
+        <el-table :data="tableData" style="width: 100%">
+          <el-table-column prop="index" label="No." width="80"></el-table-column>
+          <el-table-column prop="normal" label="Normal Amplitude"></el-table-column>
+          <el-table-column prop="motion" label="Motion Amplitude"></el-table-column>
+          <el-table-column prop="difference" label="Difference"></el-table-column>
+        </el-table>
+    </div>
+      </el-card>
+
+<div style="flex: 1;">
+  <el-form label-position="top">
+    <el-form-item label="Report Type">
+      <el-input v-model="reportType" placeholder="Enter report type" />
+    </el-form-item>
+    <el-form-item label="Doctor's Comment">
+      <el-input
+        type="textarea"
+        v-model="doctorComment"
+        placeholder="Enter doctor's comment"
+        :rows="4"
+      />
+    </el-form-item>
+    <el-form-item>
+      <el-button type="success" @click="handleReportUpload">Upload Report File</el-button>
+    </el-form-item>
+  </el-form>
+</div>
+
+    </div>
+  </el-card>
+</el-col>
+
       </el-row>
     </el-main>
   </el-container>
 </template>
 <script setup>
-import { ref, onBeforeUnmount, onMounted } from "vue";
+import { ref, onBeforeUnmount,computed , onMounted } from "vue";
 import { ElMessage, ElLoading } from "element-plus";
-import { useRoute } from 'vue-router'; // 引入 useRoute
+import { useRoute } from 'vue-router'; // Import useRoute
 
 
 const SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
 const READ_CHAR_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
 const WRITE_CHAR_UUID = "0000ffe9-0000-1000-8000-00805f9a34fb";
 
-// 状态管理
+// State management
 const devices = ref([]);
 const isConnecting = ref(false);
 const isCollecting = ref(false);
@@ -157,10 +194,10 @@ const isSending = ref(false);
 const patientId = ref(null);
 const route = useRoute();
 
-// 用于临时存储采集到的数据
+// Temporary storage for collected data
 const rawImuData = ref([]);
 
-// 优化后的数据结构 - 用于显示的数据
+// Optimized data structure - for display
 const imuDataArray = ref({
   data: [],
   pageSize: 100,
@@ -175,13 +212,40 @@ const imuDataArray = ref({
   }
 });
 
+
+import { ElMessageBox } from 'element-plus';
+const normalAmplitude = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+const motionAmplitude = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+const difference = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+
+// Compute table data by combining the arrays
+const tableData = computed(() => {
+  return normalAmplitude.value.map((value, index) => ({
+    index: index + 1,
+    normal: normalAmplitude.value[index],
+    motion: motionAmplitude.value[index],
+    difference: difference.value[index],
+  }));
+});
+const reportType = ref('');
+const doctorComment = ref('');
+
+function handleReportUpload() {
+  // Simulate successful upload
+  ElMessageBox.alert('Report uploaded successfully!', 'Success', {
+    confirmButtonText: 'OK',
+    type: 'success',
+  });
+}
+
+
 onMounted(() => {
   if (route.query.patientId) {
     patientId.value = route.query.patientId;
-    console.log('蓝牙页面接收到患者 ID:', patientId.value);
+    console.log('Bluetooth page received patient ID:', patientId.value);
   } else {
-    console.warn('蓝牙页面未接收到患者 ID');
-    ElMessage.error('未获取到患者 ID，无法进行数据关联');
+    console.warn('Bluetooth page did not receive patient ID');
+    ElMessage.error('Failed to get patient ID, cannot associate data');
   }
 });
 
@@ -191,7 +255,7 @@ onBeforeUnmount(() => {
 
 async function connectSingleDevice() {
   if (devices.value.length >= 6) {
-    ElMessage.warning("已连接6个设备，请开始采集数据！");
+    ElMessage.warning("Already connected to 6 devices, please start data collection!");
     return;
   }
 
@@ -200,7 +264,7 @@ async function connectSingleDevice() {
     isConnecting.value = true;
     loadingInstance = ElLoading.service({
       lock: true,
-      text: '正在搜索并连接蓝牙设备...',
+      text: 'Searching and connecting to Bluetooth device...',
       background: 'rgba(0, 0, 0, 0.7)'
     });
 
@@ -221,7 +285,7 @@ async function connectSingleDevice() {
 
     const deviceObj = {
       id: device.id,
-      name: device.name || `设备${devices.value.length + 1}`,
+      name: device.name || `Device ${devices.value.length + 1}`,
       device,
       server,
       notifyChar,
@@ -239,11 +303,11 @@ async function connectSingleDevice() {
     await notifyChar.startNotifications();
     notifyChar.addEventListener('characteristicvaluechanged', deviceObj.handler);
 
-    ElMessage.success(`${device.name || '设备'}已连接！`);
+    ElMessage.success(`${device.name || 'Device'} connected successfully!`);
 
   } catch (error) {
-    console.error('连接失败:', error);
-    ElMessage.error(`连接失败: ${error.message}`);
+    console.error('Connection failed:', error);
+    ElMessage.error(`Connection failed: ${error.message}`);
   } finally {
     isConnecting.value = false;
     if (loadingInstance) {
@@ -275,7 +339,7 @@ function handleData(event, deviceId) {
 
     if (device.tempBytes.length === 20) {
       const data = processDataPacket(device.tempBytes, device);
-      // 将处理后的数据存储到临时数组中
+      // Store processed data in temporary array
       rawImuData.value.push(data);
       device.lastData = data;
       device.tempBytes = [];
@@ -322,29 +386,29 @@ function processDataPacket(bytes, device) {
 
 function startDataCollection() {
   if (devices.value.length < 6) {
-    ElMessage.warning("请先连接6个设备！");
+    ElMessage.warning("Please connect 6 devices first!");
     return;
   }
 
   isCollecting.value = true;
-  rawImuData.value = []; // 清空临时数据
+  rawImuData.value = []; // Clear temporary data
   imuDataArray.value.data = [];
   imuDataArray.value.currentPage = 0;
-  ElMessage.success("开始采集数据...");
+  ElMessage.success("Starting data collection...");
 }
 
 function stopDataCollection() {
   isCollecting.value = false;
-  // 停止采集后，将临时数据更新到 imuDataArray
+  // After stopping collection, update imuDataArray with temporary data
   imuDataArray.value.data = [...rawImuData.value];
-  ElMessage.info(`已停止数据采集，共采集到 ${rawImuData.value.length} 条数据`);
+  ElMessage.info(`Data collection stopped, collected ${rawImuData.value.length} records`);
 }
 
 function handleDisconnect(deviceId) {
   const device = devices.value.find(d => d.id === deviceId);
   if (device) {
     device.connected = false;
-    ElMessage.warning(`${device.name || '设备'}已断开连接`);
+    ElMessage.warning(`${device.name || 'Device'} disconnected`);
   }
 }
 
@@ -359,42 +423,42 @@ async function stopAllDevices() {
             dev.notifyChar.removeEventListener('characteristicvaluechanged', dev.handler);
             await dev.notifyChar.stopNotifications();
           } catch (error) {
-            console.error('停止通知失败:', error);
+            console.error('Failed to stop notifications:', error);
           }
         }
         if (dev.server) {
           try {
             await dev.server.disconnect();
           } catch (error) {
-            console.error('断开连接失败:', error);
+            console.error('Disconnection failed:', error);
           }
         }
       }
     } catch (error) {
-      console.error('断开设备时出错:', error);
+      console.error('Error disconnecting device:', error);
     }
   });
 
   await Promise.all(disconnectPromises);
   devices.value = [];
-  ElMessage.info("已断开所有设备");
+  ElMessage.info("All devices disconnected");
 }
 
 function exportToCSV() {
   if (imuDataArray.value.count === 0) {
-    ElMessage.warning("没有数据可以导出");
+    ElMessage.warning("No data to export");
     return;
   }
 
   const loading = ElLoading.service({
     lock: true,
-    text: '正在准备CSV数据...',
+    text: 'Preparing CSV data...',
     background: 'rgba(0, 0, 0, 0.7)'
   });
 
   try {
     const headers = [
-      '时间戳', '设备ID', '设备名称',
+      'Timestamp', 'Device ID', 'Device Name',
       'AccX(g)', 'AccY(g)', 'AccZ(g)',
       'GyroX(°/s)', 'GyroY(°/s)', 'GyroZ(°/s)',
       'Roll(°)', 'Pitch(°)', 'Yaw(°)'
@@ -420,8 +484,8 @@ function exportToCSV() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('导出CSV失败:', error);
-    ElMessage.error('导出CSV失败');
+    console.error('CSV export failed:', error);
+    ElMessage.error('CSV export failed');
   } finally {
     loading.close();
   }
@@ -429,27 +493,27 @@ function exportToCSV() {
 
 async function sendCsvToBackend() {
   if (imuDataArray.value.count === 0) {
-    ElMessage.warning("没有数据可以发送");
+    ElMessage.warning("No data to send");
     return;
   }
 
   if (!patientId.value) {
-    ElMessage.error("未获取到患者 ID，无法发送数据");
+    ElMessage.error("Failed to get patient ID, cannot send data");
     return;
   }
 
   isSending.value = true;
   const loading = ElLoading.service({
     lock: true,
-    text: "正在发送数据到后端...",
+    text: "Sending data to backend...",
     background: "rgba(0, 0, 0, 0.7)",
   });
 
   try {
     const headers = [
-      "时间戳",
-      "设备ID",
-      "设备名称",
+      "Timestamp",
+      "Device ID",
+      "Device Name",
       "AccX(g)",
       "AccY(g)",
       "AccZ(g)",
@@ -492,8 +556,8 @@ async function sendCsvToBackend() {
     formData.append("patientId", patientId.value);
 
     const uploadUrl = "/api/upload/csv";
-    console.log("发送请求到:", uploadUrl);
-    console.log("即将发送的 FormData:");
+    console.log("Sending request to:", uploadUrl);
+    console.log("FormData to be sent:");
     for (const pair of formData.entries()) {
       console.log(pair[0] + ", " + pair[1]);
     }
@@ -505,14 +569,14 @@ async function sendCsvToBackend() {
 
     if (response.ok) {
       const responseData = await response.json();
-      ElMessage.success("数据已成功发送到后端");
-      console.log("后端响应:", responseData);
+      ElMessage.success("Data sent to backend successfully");
+      console.log("Backend response:", responseData);
     } else {
       throw new Error(`${response.status} - ${response.statusText}`);
     }
   } catch (error) {
-    ElMessage.error(`发送数据到后端时发生错误: ${error.message}`);
-    console.error("发送数据到后端时发生错误:", error);
+    ElMessage.error(`Error sending data to backend: ${error.message}`);
+    console.error("Error sending data to backend:", error);
   } finally {
     isSending.value = false;
     loading.close();
@@ -523,7 +587,7 @@ function clearData() {
   rawImuData.value = [];
   imuDataArray.value.data = [];
   imuDataArray.value.currentPage = 0;
-  ElMessage.success("已清空所有数据");
+  ElMessage.success("All data cleared");
 }
 
 function changePage(newPage) {
