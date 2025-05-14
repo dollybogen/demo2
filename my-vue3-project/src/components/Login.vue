@@ -11,8 +11,8 @@
       <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="100px">
 
         <template v-if="!isRegistering">
-          <el-form-item label="手机号/姓名" prop="username">
-            <el-input v-model="loginForm.username" placeholder="请输入手机号/姓名" />
+          <el-form-item label="手机号" prop="username">
+            <el-input v-model="loginForm.username" placeholder="请输入手机号" />
           </el-form-item>
         </template>
 

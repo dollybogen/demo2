@@ -314,35 +314,98 @@ Mock.mock('/api/users', 'post', (options) => {
 });
 
 
-// 模拟获取特定医生患者列表接口 /api/doctors/:doctorId/patients (GET)
-// 医生端界面可能会使用此接口获取自己关联的患者列表
-Mock.mock(/\/api\/doctors\/(\d+)\/patients/, 'get', (options) => {
-     const doctorId = options.url.split('/').reverse()[1]; // 从 URL 中提取 doctorId
+Mock.mock(/\/api\/doctors\/(\d+)\/patients(\?.*)?$/, 'get', (options) => {
+    // 1. 权限检查
+    const authResult = checkAdminOrRelatedDoctor();
+    if (authResult.status !== 200) {
+        return authResult;
+    }
 
-     // ✅ 调用修改后的权限检查函数，不再传递参数
-     const authResult = checkAdminOrRelatedDoctor();
-     if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
-     }
+    // 2. 解析URL参数（修正后的方式）
+    const queryString = options.url.split('?')[1] || '';
+    const params = new URLSearchParams(queryString);
+    const doctorId = options.url.match(/\/api\/doctors\/(\d+)\/patients/)[1];
 
-     // 根据 doctorId 查找关系，然后找到对应的患者信息
-     const patientsForDoctor = relations
-         .filter(rel => rel.doctorId === String(doctorId)) // 确保 ID 类型匹配
-         .map(rel => findPatientById(rel.patientId))
-         .filter(patient => patient !== undefined); // 过滤掉未找到的患者
+    // 3. 获取分页参数
+    const page = parseInt(params.get('page') || 1);
+    const pageSize = parseInt(params.get('pageSize') || 8);
 
+    // 4. 获取搜索参数（添加默认值）
+    const searchName = params.get('name') || '';
+    const searchPhone = params.get('phone') || '';
+    const searchGender = params.get('gender') || '';
+    const searchIdNumber = params.get('idNumber') || '';
+
+    // 5. 获取该医生的所有患者关系
+    let doctorPatients = relations
+        .filter(rel => rel.doctorId === String(doctorId))
+        .map(rel => {
+            const patient = findPatientById(rel.patientId);
+            return patient ? {
+                ...patient,
+                relationInfo: {
+                    doctorId: rel.doctorId,
+                    patientId: rel.patientId,
+                    doctorName: findDoctorById(rel.doctorId)?.name || '未知医生'
+                }
+            } : null;
+        })
+        .filter(patient => patient !== null);
+
+    // 6. 应用搜索条件（添加属性存在性检查）
+    if (searchName) {
+        doctorPatients = doctorPatients.filter(p =>
+            p.name && p.name.toLowerCase().includes(searchName.toLowerCase())
+        );
+    }
+    if (searchPhone) {
+        doctorPatients = doctorPatients.filter(p =>
+            p.phone && p.phone.includes(searchPhone)
+        );
+    }
+    if (searchGender) {
+        doctorPatients = doctorPatients.filter(p =>
+            p.gender && p.gender === searchGender
+        );
+    }
+    if (searchIdNumber) {
+        doctorPatients = doctorPatients.filter(p =>
+            p.idNumber && p.idNumber.includes(searchIdNumber)
+        );
+    }
+
+    // 7. 分页处理
+    const total = doctorPatients.length;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedData = doctorPatients.slice(startIndex, endIndex);
+
+    // 8. 返回响应
     return {
-        code: 200,
-        message: 'success',
-        data: patientsForDoctor.map(p => ({ // 模拟返回患者部分信息
-             id: p.id,
-             name: p.name,
-             age: Mock.mock('@integer(20, 70)'), // 模拟年龄
-             gender: p.gender
-         })),
+        status: 200,
+        data: paginatedData.map(p => ({
+            id: p.id,
+            name: p.name,
+            phone: p.phone,
+            gender: p.gender,
+            birthDate: p.birthDate,
+            idNumber: p.idNumber,
+            age: calculateAge(p.birthDate),
+            relationInfo: p.relationInfo
+        })),
+        total: total,
+        page: page,
+        pageSize: pageSize,
+        message: '获取患者列表成功'
     };
- });
-
+});
+// 辅助函数：计算年龄（与relations接口风格一致）
+function calculateAge(birthDate) {
+    if (!birthDate) return null;
+    const birthYear = new Date(birthDate).getFullYear();
+    const currentYear = new Date().getFullYear();
+    return currentYear - birthYear;
+}
 
 // 模拟获取患者报告接口 /api/patient/:patientId/reports (GET)
 Mock.mock(/\/api\/patient\/(\d+)\/reports/, 'get', (options) => {
@@ -1140,3 +1203,144 @@ Mock.mock(/\/api\/admin\/relations\/(\d+)\/(\d+)/, 'delete', (options) => {
 
 
 console.log('Mock API 已启用 (硬编码数据 + 医生/患者/关系管理) - 安全检查已禁用');
+
+
+Mock.mock(/\/api\/measurements\/\d+/, 'get', (options) => {
+  const measurementId = options.url.split('/').pop()
+
+  return Mock.mock({
+    code: 200,
+    message: 'success',
+    data: {
+      id: measurementId,
+      patientId: 1,
+      date: '@date',
+      results: {
+        rangeOfMotion: '@integer(70, 90)%',
+        gaitCycle: '@float(0.8, 1.5, 1, 2)s',
+        stepLength: '@float(0.6, 0.9, 1, 2)m',
+        cadence: '@integer(90, 120) steps/min',
+        speed: '@float(0.8, 1.4, 1, 2)m/s'
+      }
+    }
+  })
+})
+
+import dayjs from 'dayjs'
+
+const reportsDB = []
+let reportCounter = 1
+
+// 固定模式的报告数据生成器
+const generateFixedReportData = () => ({
+  "标准幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "运动幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  "差值": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+})
+
+// 拦截CSV上传路由
+Mock.mock(/\/api\/upload\/csv/, 'post', (options) => {
+  try {
+    // 解析 FormData (模拟)
+    const formData = new URLSearchParams(options.body)
+    const patientId = formData.get('patientId')
+
+    if (!patientId) {
+      return Mock.mock({
+        status: 400,
+        message: '缺少 patientId 参数'
+      })
+    }
+
+    // 生成固定模式的报告数据
+    const reportData = {
+      reportId: `rep_${reportCounter++}`,
+      receivedAt: dayjs().toISOString(),
+      reportData: generateFixedReportData()
+    }
+
+    // 存入数据库
+    reportsDB.push({
+      ...reportData,
+      patientId,
+      createdAt: new Date().toISOString()
+    })
+
+    // 返回严格符合要求的响应
+    return {
+      status: 200,
+      data: {
+        receivedAt: reportData.receivedAt,
+        reportId: reportData.reportId,
+        reportData: reportData.reportData  // 包含固定1-12的数组
+      },
+      message: 'CSV 文件上传成功'
+    }
+  } catch (error) {
+    return Mock.mock({
+      status: 500,
+      message: '服务器处理文件时出错: ' + error.message
+    })
+  }
+})
+
+// 报告更新接口（保持不变）
+Mock.mock(/\/api\/report\/\w+/, 'put', (options) => {
+  const urlParts = options.url.split('/')
+  const reportId = urlParts[urlParts.length - 1]
+  const body = JSON.parse(options.body)
+
+  const report = reportsDB.find(r => r.reportId === reportId)
+  if (!report) {
+    return Mock.mock({
+      status: 404,
+      message: '报告不存在'
+    })
+  }
+
+  report.type = body.type || '初始评估'
+  report.summary = body.summary || ''
+  report.updatedAt = new Date().toISOString()
+
+  return Mock.mock({
+    status: 200,
+    data: {
+      reportId: report.reportId,
+      updatedAt: report.updatedAt
+    },
+    message: '报告更新成功'
+  })
+})
+
+// 获取报告详情（返回固定数据）
+Mock.mock(/\/api\/reports\/\w+/, 'get', (options) => {
+  const urlParts = options.url.split('/')
+  const reportId = urlParts[urlParts.length - 1]
+
+  const report = reportsDB.find(r => r.reportId === reportId)
+  if (!report) {
+    return Mock.mock({
+      status: 404,
+      message: '报告不存在'
+    })
+  }
+
+  return {
+    status: 200,
+    data: {
+      ...report,
+      // 确保返回固定1-12的数组
+      reportData: {
+        "标准幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "运动幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "差值": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      }
+    },
+    message: '获取报告成功'
+  }
+})
+
+console.log('Mock 服务已启动，使用固定1-12的测试数据')
+console.log('POST /api/upload/csv')
+console.log('PUT /api/report/:id')
+console.log('GET /api/reports/:id')
