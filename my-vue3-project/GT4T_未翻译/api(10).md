@@ -1443,7 +1443,7 @@ Authorization: Bearer <token>
 - **请求方法：** `POST`
 - **请求类型：** `multipart/form-data`
 - **描述：**
-  向后端上传采集到的 **两个** IMU 数据 CSV 文件（分别包含第一部分和第二部分的传感器数据），同时附带患者 ID 信息。两个文件的文件名格式为 `YYYY-MM-DD-HH-mm-ss-1.csv` 和 `YYYY-MM-DD-HH-mm-ss-2.csv`，其中 `YYYY-MM-DD-HH-mm-ss` 为采集数据的精确到秒的时间戳。后端将保存、合并并解析数据。
+  向后端上传采集到的 **四个** IMU 数据 CSV 文件（分别包含第一部分到第四部分的传感器数据），同时附带患者 ID 信息。四个文件的文件名格式为 `YYYY-MM-DD-HH-mm-ss-1.csv` 到 `YYYY-MM-DD-HH-mm-ss-4.csv`，其中 `YYYY-MM-DD-HH-mm-ss` 为采集数据的精确到秒的时间戳。后端将保存、合并并解析数据。
 
 * **权限:** 真实 API 需要认证，通常只有关联的医生或管理员有权限为该患者上传数据。**(当前 Mock 已禁用此权限检查)**
 
@@ -1453,6 +1453,8 @@ Authorization: Bearer <token>
 |------------|------------|----------|------------------------------------------------|
 | file1      | File       | 是       | 第一个 CSV 文件内容，文件名应为 `YYYY-MM-DD-HH-mm-ss-1.csv` |
 | file2      | File       | 是       | 第二个 CSV 文件内容，文件名应为 `YYYY-MM-DD-HH-mm-ss-2.csv` |
+| file3      | File       | 是       | 第三个 CSV 文件内容，文件名应为 `YYYY-MM-DD-HH-mm-ss-3.csv` |
+| file4      | File       | 是       | 第四个 CSV 文件内容，文件名应为 `YYYY-MM-DD-HH-mm-ss-4.csv` |
 | patientId  | string     | 是       | 患者的唯一标识                                   |
 
 - **请求示例：**
@@ -1480,6 +1482,23 @@ Content-Type: text/csv
 // ... 更多第二部分数据
 
 ------WebKitFormBoundaryEXAMPLEUPLOAD
+Content-Disposition: form-data; name="file3"; filename="2025-05-13-10-00-00-3.csv"
+Content-Type: text/csv
+
+时间戳,设备ID,设备名称,AccX(g),AccY(g),AccZ(g),GyroX(°/s),GyroY(°/s),GyroZ(°/s),Roll(°),Pitch(°),Yaw(°)
+"2025-05-13T10:00:00.000",003,"IMU_C",0.01,0.02,0.98,0.1,0.1,0.2,10.0,5.0,0.0
+// ... 更多第三部分数据
+
+------WebKitFormBoundaryEXAMPLEUPLOAD
+Content-Disposition: form-data; name="file3"; filename="2025-05-13-10-00-00-4.csv"
+Content-Type: text/csv
+
+时间戳,设备ID,设备名称,AccX(g),AccY(g),AccZ(g),GyroX(°/s),GyroY(°/s),GyroZ(°/s),Roll(°),Pitch(°),Yaw(°)
+"2025-05-13T10:00:00.000",003,"IMU_C",0.01,0.02,0.98,0.1,0.1,0.2,10.0,5.0,0.0
+// ... 更多第四部分数据
+
+------WebKitFormBoundaryEXAMPLEUPLOAD
+
 Content-Disposition: form-data; name="patientId"
 
 1001

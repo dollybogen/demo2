@@ -345,8 +345,7 @@ watch(reportType, (newValue) => {
 
 // Computed properties (from Code 2)
 const canUpload = computed(() => {
-  // Can upload if at least 2 collection sets are stored
-  return collectedDataSets.value.length >= 2;
+  return collectedDataSets.value.length >= 4;
 });
 
 const rawDataTable = computed(() => {
@@ -741,18 +740,14 @@ async function stopAllDevices() {
 
 // Exports collected data (currently in imuDataArray.data) to a CSV file (from Code 1)
 function exportToCSV() {
-  // imuDataArray.value.data contains all data after collection stops,
-  // or the recent subset during live collection. Exporting from here matches Code 1.
-  const dataToExport = imuDataArray.value.data;
-
-  if (dataToExport.length === 0) {
+  if (collectedDataSets.value.length === 0) {
     ElMessage.warning("没有数据可以导出");
     return;
   }
 
   const loading = ElLoading.service({
     lock: true,
-    text: '正在准备CSV数据...',
+    text: '正在准备CSV文件...',
     background: 'rgba(0, 0, 0, 0.7)'
   });
 
@@ -764,29 +759,33 @@ function exportToCSV() {
       'Roll(°)', 'Pitch(°)', 'Yaw(°)'
     ].join(',') + '\n';
 
-    let csvString = "\uFEFF" + headers; // Add BOM for UTF-8
-    csvString += dataToExport.map(row =>
-      [
-        `"${row.timestamp}"`,
-        row.deviceId,
-        `"${row.deviceName}"`,
-        row.AccX, row.AccY, row.AccZ,
-        row.GyroX, row.GyroY, row.GyroZ,
-        row.Roll, row.Pitch, row.Yaw
-      ].join(',')
-    ).join('\n');
+    // 为每个采集的数据集创建一个CSV文件
+    collectedDataSets.value.forEach((dataset, index) => {
+      let csvString = "\uFEFF" + headers; // Add BOM for UTF-8
+      csvString += dataset.map(row =>
+        [
+          `"${row.timestamp}"`,
+          row.deviceId,
+          `"${row.deviceName}"`,
+          row.AccX, row.AccY, row.AccZ,
+          row.GyroX, row.GyroY, row.GyroZ,
+          row.Roll, row.Pitch, row.Yaw
+        ].join(',')
+      ).join('\n');
 
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `imu_data_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      link.download = `${timestamp}-${index + 1}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
 
-    ElMessage.success("CSV文件导出成功");
+    ElMessage.success(`成功导出 ${collectedDataSets.value.length} 个CSV文件`);
 
   } catch (error) {
     console.error('导出CSV失败:', error);
@@ -798,27 +797,26 @@ function exportToCSV() {
 
 // Sends collected data sets (requires >= 2 sets) to the backend for analysis (from Code 2)
 async function sendCsvToBackend() {
-  // Check if upload conditions are met (at least 2 collected sets)
-  if (!canUpload.value) {
-    ElMessage.warning(`请先完成至少两次数据采集 (已完成 ${collectedDataSets.value.length} 次)`);
+  // 检查是否有足够的数据集
+  if (collectedDataSets.value.length < 4) {
+    ElMessage.warning(`需要完成4次数据采集 (当前已完成 ${collectedDataSets.value.length} 次)`);
     return;
   }
 
-  // Check if patientId is available
+  // 检查是否有patientId
   if (!patientId.value) {
     ElMessage.error("未获取到患者ID，无法上传数据");
     return;
   }
 
-  isSending.value = true; // Set sending state
-  const loading = ElLoading.service({ // Show loading indicator
+  isSending.value = true;
+  const loading = ElLoading.service({
     lock: true,
     text: "正在上传数据到服务器...",
     background: "rgba(0, 0, 0, 0.7)",
   });
 
   try {
-    // Define CSV headers
     const headers = [
       "时间戳", "设备ID", "设备名称",
       "AccX(g)", "AccY(g)", "AccZ(g)",
@@ -826,74 +824,60 @@ async function sendCsvToBackend() {
       "Roll(°)", "Pitch(°)", "Yaw(°)"
     ].join(",") + "\n";
 
-    const formData = new FormData(); // Create FormData object for file upload
-    formData.append("patientId", patientId.value); // Append patient ID
+    const formData = new FormData();
+    formData.append("patientId", patientId.value);
 
-    // Ensure we have at least two datasets (already checked by canUpload, but double check)
-    if (collectedDataSets.value.length < 2) {
-        // This case should ideally not be reached if canUpload check works
-        throw new Error("没有足够的采集数据 (需要至少两次)");
+    // 处理前4个数据集
+    for (let i = 0; i < 4; i++) {
+      let csvString = "\uFEFF" + headers;
+      csvString += collectedDataSets.value[i]
+        .map((row) =>
+          [
+            `"${row.timestamp}"`,
+            row.deviceId,
+            `"${row.deviceName}"`,
+            row.AccX,
+            row.AccY,
+            row.AccZ,
+            row.GyroX,
+            row.GyroY,
+            row.GyroZ,
+            row.Roll,
+            row.Pitch,
+            row.Yaw,
+          ].join(",")
+        )
+        .join("\n");
+
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      const filename = `${timestamp}-${i + 1}.csv`;
+      const csvFile = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+      formData.append(`file${i + 1}`, csvFile, filename);
     }
 
-    // Process the first two collected data sets and append as files
-    // Assuming the backend expects files named 'file1' and 'file2'
-    for (let i = 0; i < 2; i++) {
-        let csvString = "\uFEFF" + headers; // Start CSV string with BOM and headers
-        csvString += collectedDataSets.value[i] // Add data rows
-          .map((row) =>
-            [
-              `"${row.timestamp}"`,
-              row.deviceId,
-              `"${row.deviceName}"`,
-              row.AccX,
-              row.AccY,
-              row.AccZ,
-              row.GyroX,
-              row.GyroY,
-              row.GyroZ,
-              row.Roll,
-              row.Pitch,
-              row.Yaw,
-            ].join(",")
-          )
-          .join("\n");
-
-        const csvFile = new Blob([csvString], { type: "text/csv;charset=utf-8;" }); // Create Blob from CSV string
-        // Create a unique filename for each file
-        const filename = `imu_data_${patientId.value}_set${i + 1}_${new Date()
-          .toISOString()
-          .slice(0, 19)
-          .replace(/[:T]/g, "-")}.csv`;
-        formData.append(`file${i + 1}`, csvFile, filename); // Append Blob as a file named 'file1' or 'file2'
-    }
-
-    // Send POST request to backend upload endpoint using axios
     const response = await axios.post("/api/upload/csv", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data' // Important header for file uploads
+        'Content-Type': 'multipart/form-data'
       }
     });
 
-    // Check backend response status
     if (response.data && response.data.status === 200) {
-      reportId.value = response.data.data.reportId; // Store returned report ID
-      reportData.value = response.data.data; // Store returned analysis data
+      reportId.value = response.data.data.reportId;
+      reportData.value = response.data.data;
       ElMessage.success("数据上传成功，分析结果已更新");
       console.log("服务器响应:", response.data);
-      // Clear collected datasets after successful upload to prevent re-uploading the same data
+      // 清空已上传的数据集
       collectedDataSets.value = [];
-      collectionCount.value = 0; // Reset count
+      collectionCount.value = 0;
     } else {
-      // Throw error if backend indicates failure
       throw new Error(response.data?.message || `上传数据失败，状态码: ${response.status}`);
     }
   } catch (error) {
-    // Handle network or backend errors
     ElMessage.error(`上传数据失败: ${error.message}`);
     console.error("上传数据失败:", error);
   } finally {
-    isSending.value = false; // Reset sending state
-    loading.close(); // Hide loading indicator
+    isSending.value = false;
+    loading.close();
   }
 }
 

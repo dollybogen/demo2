@@ -72,7 +72,7 @@ const reports = ref([]);
 const selectedReportData = ref(null);
 
 // 假设的步态分析指标列名，根据你的实际数据来调整
-const gaitColumns = ref(['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6']);
+const gaitColumns = ref(['左前屈', '右前屈', '左后伸', '右后伸', '左外展', '右外展', '左内收', '右内收', '左外旋', '右外旋', '左内旋', '右内旋']);
 // 假设的步态分析数据行名
 const gaitDataRows = ref([
   { name: '标准幅度' },
