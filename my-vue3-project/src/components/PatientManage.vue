@@ -2,34 +2,34 @@
   <div class="patient-manage">
     <el-container class="content-container">
       <el-header class="header">
-        <h2>患者管理</h2>
+        <h2>Patient Management</h2>
         <div class="search-controls">
           <el-input
             v-model="searchParams.name"
-            placeholder="患者姓名"
+            placeholder="Patient Name"
             clearable
             @clear="handleSearch"
             @keyup.enter="handleSearch"
           />
           <el-input
             v-model="searchParams.phone"
-            placeholder="手机号"
+            placeholder="Phone Number"
             clearable
             @clear="handleSearch"
             @keyup.enter="handleSearch"
           />
           <el-select
             v-model="searchParams.gender"
-            placeholder="性别"
+            placeholder="Gender"
             clearable
             @change="handleSearch"
           >
-            <el-option label="男" value="男" />
-            <el-option label="女" value="女" />
+            <el-option label="Male" value="Male" />
+            <el-option label="Female" value="Female" />
           </el-select>
           <el-input
             v-model="searchParams.idNumber"
-            placeholder="身份证号"
+            placeholder="ID Number"
             clearable
             @clear="handleSearch"
             @keyup.enter="handleSearch"
@@ -51,20 +51,20 @@
                        <h3>{{ patient.name }}</h3>
                        <div class="patient-meta">
                          <span>{{ patient.gender }} | {{ patient.phone }}</span>
-                         <span v-if="patient.birthDate"> | {{ calculateAge(patient.birthDate) }}岁</span>
+                         <span v-if="patient.birthDate"> | {{ calculateAge(patient.birthDate) }} years</span>
                        </div>
                        <div class="button-group">
                          <el-button
                            type="text"
                            @click="showHistoryData(patient.id)"
                          >
-                           查看历史数据
+                           View History Data
                          </el-button>
                          <el-button
                            type="text"
                            @click="measureDataAction(patient.id)"
                          >
-                           测量数据
+                           Measure Data
                          </el-button>
                        </div>
                      </div>
@@ -78,12 +78,12 @@
                      <el-empty :description="emptyDescription" image-size="200">
                        <template v-if="hasSearchCondition">
                          <el-button type="primary" @click="resetSearch">
-                           重置搜索条件
+                           Reset Search Conditions
                          </el-button>
-                         <p class="no-data-tip">或尝试调整搜索条件</p>
+                         <p class="no-data-tip">Or try adjusting the search conditions</p>
                        </template>
                        <template v-else>
-                         <p class="no-data-tip">当前医生暂无关联患者</p>
+                         <p class="no-data-tip">Current doctor has no associated patients</p>
                        </template>
                      </el-empty>
                    </div>
@@ -165,7 +165,7 @@ const hasSearchCondition = computed(() => {
 });
 
 const emptyDescription = computed(() => {
-  return hasSearchCondition.value ? '未找到匹配患者' : '暂无患者数据';
+  return hasSearchCondition.value ? 'No matching patients found' : 'No patient data available';
 });
 
 // 生命周期钩子
@@ -174,7 +174,7 @@ onMounted(() => {
   if (doctorId.value) {
     fetchPatients();
   } else {
-    ElMessage.error('未获取到医生ID，无法加载患者列表');
+    ElMessage.error('Doctor ID not found, unable to load patient list');
     // Optionally redirect to a login or error page
     // router.push('/login');
   }
@@ -221,7 +221,7 @@ async function fetchPatients() {
       }
     } else {
       // Handle backend errors with non-200 status
-      ElMessage.error(res.data.message || '获取患者列表失败');
+      ElMessage.error(res.data.message || 'Failed to get patient list');
       patients.value = [];
       totalPatients.value = 0;
     }
@@ -243,39 +243,39 @@ function handleApiError(err) {
     // that falls out of the range of 2xx
     switch (err.response.status) {
       case 401:
-        ElMessage.error('未授权访问，请重新登录');
+        ElMessage.error('Unauthorized access, please login again');
         // router.push('/login'); // Redirect to login if 401
         break;
       case 403:
-        ElMessage.error('权限不足，无法查看该资源');
+        ElMessage.error('Insufficient permissions to view this resource');
         break;
       case 404:
          // This might happen if the doctorId is invalid or the endpoint changes
-        ElMessage.error('未找到指定资源或医生');
+        ElMessage.error('Resource or doctor not found');
         break;
       case 500:
-         ElMessage.error('服务器内部错误，请稍后重试');
+         ElMessage.error('Internal server error, please try again later');
          break;
       default:
-        ElMessage.error(`请求失败: ${err.response.status} - ${err.response.statusText}`);
+        ElMessage.error(`Request failed: ${err.response.status} - ${err.response.statusText}`);
     }
   } else if (err.request) {
     // The request was made but no response was received
-    ElMessage.error('无法连接到服务器，请检查网络');
+    ElMessage.error('Unable to connect to server, please check your network');
   } else {
     // Something happened in setting up the request that triggered an Error
-    ElMessage.error('请求设置错误: ' + err.message);
+    ElMessage.error('Request setup error: ' + err.message);
   }
 }
 
 
 // 计算年龄
 function calculateAge(birthDate) {
-  if (!birthDate) return '未知';
+  if (!birthDate) return 'Unknown';
   try {
      const birth = new Date(birthDate);
      if (isNaN(birth.getTime())) { // Check if date is valid
-         return '无效日期';
+         return 'Invalid Date';
      }
      const today = new Date();
      let age = today.getFullYear() - birth.getFullYear();
@@ -287,7 +287,7 @@ function calculateAge(birthDate) {
      return age < 0 ? 0 : age; // Age should not be negative
   } catch (e) {
      console.error("Error calculating age:", e);
-     return '计算失败';
+     return 'Calculation Failed';
   }
 }
 

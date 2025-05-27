@@ -7,9 +7,9 @@
           @click="goBackToPatientManage"
           class="back-button"
         >
-          <el-icon><ArrowLeft /></el-icon> <span>返回患者列表</span>
+          <el-icon><ArrowLeft /></el-icon> <span>Back to Patient List</span>
         </el-button>
-        <h1>多设备IMU数据采集系统</h1>
+        <h1>Multi-Device IMU Data Collection System</h1>
       </div>
 
       <div class="header-actions">
@@ -18,7 +18,7 @@
           @click="connectSingleDevice"
           :disabled="isConnecting"
         >
-          {{ isConnecting ? "正在连接..." : `连接设备 (${devices.length})` }}
+          {{ isConnecting ? "Connecting..." : `Connect Device (${devices.length})` }}
         </el-button>
 
         <el-button-group>
@@ -27,14 +27,14 @@
             @click="startDataCollection"
             :disabled="devices.length === 0 || isCollecting"
           >
-            开始采集
+            Start Collection
           </el-button>
           <el-button
             type="warning"
             @click="stopDataCollection"
             :disabled="!isCollecting"
           >
-            停止采集
+            Stop Collection
           </el-button>
         </el-button-group>
 
@@ -44,14 +44,14 @@
             @click="exportToCSV"
             :disabled="imuDataArray.count === 0"
           >
-            导出CSV
+            Export CSV
           </el-button>
           <el-button
             type="danger"
             @click="clearData"
             :disabled="imuDataArray.count === 0 && collectedDataSets.length === 0 && !reportData"
           >
-            清空数据
+            Clear Data
           </el-button>
         </el-button-group>
 
@@ -60,7 +60,7 @@
           @click="sendCsvToBackend"
           :disabled="!canUpload || isSending"
         >
-          {{ isSending ? '上传中...' : '上传数据' }}
+          {{ isSending ? 'Uploading...' : 'Upload Data' }}
         </el-button>
       </div>
     </el-header>
@@ -71,19 +71,19 @@
           <el-card class="device-list">
             <template #header>
               <div class="card-header">
-                <span>已连接设备</span>
+                <span>Connected Devices</span>
                 <el-button type="text" @click="stopAllDevices" :disabled="devices.length === 0">
-                  断开全部
+                  Disconnect All
                 </el-button>
               </div>
             </template>
 
-            <el-empty v-if="devices.length === 0" description="未连接设备" />
+            <el-empty v-if="devices.length === 0" description="No devices connected" />
 
             <div v-else class="device-item" v-for="dev in devices" :key="dev.id">
               <div class="device-info">
                 <el-tag :type="dev.connected ? 'success' : 'danger'" size="small">
-                  {{ dev.connected ? '在线' : '离线' }}
+                  {{ dev.connected ? 'Online' : 'Offline' }}
                 </el-tag>
                 <span>{{ dev.name }}</span>
               </div>
@@ -99,62 +99,63 @@
           <el-card class="main-data-card">
             <template #header>
               <div class="card-header">
-                <span>IMU数据 ({{ isCollecting ? '实时采集中...' : '已停止采集' }})</span>
-                <span class="data-count">共 {{ imuDataArray.count }} 条数据</span>
+                <span>IMU Data ({{ isCollecting ? 'Collecting...' : 'Collection Stopped' }})</span>
+                <span class="data-count">Total {{ imuDataArray.count }} records</span>
               </div>
             </template>
 
-            <el-table
-              :data="imuDataArray.visibleData"
-              border
-              height="270" style="width: 100%"
-              v-loading="isCollecting"
-              :row-key="row => row.timestamp + row.deviceId"
-            >
-              <el-table-column prop="timestamp" label="时间" width="180" />
-              <el-table-column prop="deviceName" label="设备名称" width="120" />
+            <div class="data-table-section">
+              <el-table
+                :data="imuDataArray.visibleData"
+                border
+                height="300"
+                v-loading="isCollecting"
+              >
+                <el-table-column prop="timestamp" label="Time" width="180" />
+                <el-table-column prop="deviceName" label="Device Name" width="120" />
 
-              <el-table-column label="加速度(g)">
-                <el-table-column prop="AccX" label="X" width="90" />
-                <el-table-column prop="AccY" label="Y" width="90" />
-                <el-table-column prop="AccZ" label="Z" width="90" />
-              </el-table-column>
+                <el-table-column label="Acceleration (g)">
+                  <el-table-column prop="AccX" label="X" width="90" />
+                  <el-table-column prop="AccY" label="Y" width="90" />
+                  <el-table-column prop="AccZ" label="Z" width="90" />
+                </el-table-column>
 
-              <el-table-column label="角速度(°/s)">
-                <el-table-column prop="GyroX" label="X" width="90" />
-                <el-table-column prop="GyroY" label="Y" width="90" />
-                <el-table-column prop="GyroZ" label="Z" width="90" />
-              </el-table-column>
+                <el-table-column label="Angular Velocity (°/s)">
+                  <el-table-column prop="GyroX" label="X" width="90" />
+                  <el-table-column prop="GyroY" label="Y" width="90" />
+                  <el-table-column prop="GyroZ" label="Z" width="90" />
+                </el-table-column>
 
-              <el-table-column label="角度(°)">
-                <el-table-column prop="Roll" label="Roll" width="90" />
-                <el-table-column prop="Pitch" label="Pitch" width="90" />
-                <el-table-column prop="Yaw" label="Yaw" width="90" />
-              </el-table-column>
-            </el-table>
+                <el-table-column label="Angle (°)">
+                  <el-table-column prop="Roll" label="Roll" width="90" />
+                  <el-table-column prop="Pitch" label="Pitch" width="90" />
+                  <el-table-column prop="Yaw" label="Yaw" width="90" />
+                </el-table-column>
+              </el-table>
 
-            <el-pagination
-              v-if="imuDataArray.count > imuDataArray.pageSize"
-              @current-change="changePage"
-              :current-page="imuDataArray.currentPage + 1"
-              :page-size="imuDataArray.pageSize"
-              layout="prev, pager, next"
-              :total="imuDataArray.count"
-              class="pagination"
-            />
+              <div class="pagination" v-if="imuDataArray.count > imuDataArray.pageSize">
+                <el-pagination
+                  @current-change="changePage"
+                  :current-page="imuDataArray.currentPage + 1"
+                  :page-size="imuDataArray.pageSize"
+                  layout="prev, pager, next"
+                  :total="imuDataArray.count"
+                />
+              </div>
+            </div>
 
             <div class="analysis-report-container">
               <el-card class="analysis-card">
                 <template #header>
                   <div class="card-header">
-                    <span>幅度分析</span>
+                    <span>Amplitude Analysis</span>
                     <el-button
                       v-if="reportData"
                       type="text"
                       @click="toggleDataView"
                       style="float: right; padding: 3px 0"
                     >
-                      {{ showRawData ? '显示分析' : '显示原始数据' }}
+                      {{ showRawData ? 'Show Analysis' : 'Show Raw Data' }}
                     </el-button>
                   </div>
                 </template>
@@ -162,8 +163,8 @@
                 <div v-if="reportData">
                   <div v-if="showRawData" style="max-height: 300px; overflow-y: auto;">
                     <el-table :data="rawDataTable" border style="width: 100%">
-                      <el-table-column prop="timestamp" label="时间" width="180" />
-                      <el-table-column prop="deviceName" label="设备" width="120" />
+                      <el-table-column prop="timestamp" label="Time" width="180" />
+                      <el-table-column prop="deviceName" label="Device" width="120" />
                       <el-table-column prop="AccX" label="AccX" width="80" />
                       <el-table-column prop="AccY" label="AccY" width="80" />
                       <el-table-column prop="AccZ" label="AccZ" width="80" />
@@ -174,30 +175,17 @@
                   </div>
                   <div v-else>
                     <el-table :data="analysisTable" border style="width: 100%">
-                      <el-table-column prop="index" label="序号" width="80"></el-table-column>
-                      <el-table-column prop="normal" label="标准幅度"></el-table-column>
-                      <el-table-column prop="motion" label="运动幅度"></el-table-column>
-                      <el-table-column prop="difference" label="差值"></el-table-column>
+                      <el-table-column prop="index" label="Index" width="80"></el-table-column>
+                      <el-table-column prop="normal" label="Standard Amplitude"></el-table-column>
+                      <el-table-column prop="motion" label="Motion Amplitude"></el-table-column>
+                      <el-table-column prop="difference" label="Difference"></el-table-column>
                     </el-table>
-
-                    <div style="margin-top: 20px;">
-                      <h4>评分总结</h4>
-                      <el-progress
-                        :percentage="scorePercentage"
-                        :status="scoreStatus"
-                        :text-inside="true"
-                        :stroke-width="24"
-                      />
-                      <p style="margin-top: 10px; color: #666;">
-                        {{ scoreEvaluation }}
-                      </p>
-                    </div>
                   </div>
                 </div>
                 <div v-else style="text-align: center; padding: 20px;">
-                  <el-empty description="暂无分析数据" />
+                  <el-empty description="No analysis data" />
                   <p style="color: #999; margin-top: 10px;">
-                    上传数据后可查看分析结果
+                    Upload data to view analysis results
                   </p>
                 </div>
               </el-card>
@@ -205,7 +193,7 @@
               <el-card class="report-card">
                 <template #header>
                   <div class="card-header">
-                    <span>医生评估</span>
+                    <span>Doctor Assessment</span>
                     <el-button
                       v-if="reportId"
                       type="text"
@@ -213,31 +201,31 @@
                       style="float: right; padding: 3px 0"
                       :loading="isUpdatingReport"
                     >
-                      保存修改
+                      Save Changes
                     </el-button>
                   </div>
                 </template>
 
                 <el-form label-position="top">
-                  <el-form-item label="报告类型">
-                    <el-select v-model="reportType" placeholder="选择报告类型" style="width: 100%">
-                      <el-option label="初始评估" value="Initial Assessment" />
-                      <el-option label="进展报告" value="Progress Report" />
-                      <el-option label="最终评估" value="Final Evaluation" />
-                      <el-option label="自定义" value="Custom" />
+                  <el-form-item label="Report Type">
+                    <el-select v-model="reportType" placeholder="Select report type" style="width: 100%">
+                      <el-option label="Initial Assessment" value="Initial Assessment" />
+                      <el-option label="Progress Report" value="Progress Report" />
+                      <el-option label="Final Evaluation" value="Final Evaluation" />
+                      <el-option label="Custom" value="Custom" />
                     </el-select>
                     <el-input
                       v-if="reportType === 'Custom'"
                       v-model="customReportTypeName"
-                      placeholder="请输入自定义报告类型"
+                      placeholder="Enter custom report type"
                       style="margin-top: 10px;"
                     ></el-input>
                   </el-form-item>
-                  <el-form-item label="医生评语">
+                  <el-form-item label="Doctor Comments">
                     <el-input
                       type="textarea"
                       v-model="doctorComment"
-                      placeholder="输入您的评估和建议"
+                      placeholder="Enter your assessment and suggestions"
                       :rows="4"
                       resize="none"
                     />
@@ -249,7 +237,7 @@
                       :loading="isUploadingReport"
                       style="width: 100%"
                     >
-                      上传完整报告
+                      Upload Complete Report
                     </el-button>
                   </el-form-item>
                 </el-form>
@@ -332,7 +320,7 @@ const reportType = ref('Initial Assessment'); // Doctor evaluation type
 const customReportTypeName = ref(''); // Custom type input
 const doctorComment = ref(''); // Doctor's comment/summary
 const isUpdatingReport = ref(false); // Loading state for saving doctor input
-const isUploadingReport = ref(false); // Loading state for the '上传完整报告' button
+const isUploadingReport = ref(false); // Loading state for the 'Upload Complete Report' button
 const showRawData = ref(false); // Toggle view in analysis card
 
 
@@ -356,9 +344,9 @@ const rawDataTable = computed(() => {
 const analysisTable = computed(() => {
   if (!reportData.value || !reportData.value.reportData) return [];
    // Ensure these properties exist and are arrays before mapping
-  const standardAmplitudes = reportData.value.reportData.标准幅度 || [];
-  const motionAmplitudes = reportData.value.reportData.运动幅度 || [];
-  const differences = reportData.value.reportData.差值 || [];
+  const standardAmplitudes = reportData.value.reportData.standardAmplitude || [];
+  const motionAmplitudes = reportData.value.reportData.motionAmplitude || [];
+  const differences = reportData.value.reportData.difference || [];
 
   const maxLength = Math.max(standardAmplitudes.length, motionAmplitudes.length, differences.length);
 
@@ -370,44 +358,20 @@ const analysisTable = computed(() => {
   }));
 });
 
-const scorePercentage = computed(() => {
-  if (!reportData.value || !reportData.value.reportData || !reportData.value.reportData.差值) return 0;
-  const differences = reportData.value.reportData.差值;
-    if (differences.length === 0) return 0;
-  const avgDiff = differences.reduce((a, b) => a + b, 0) / differences.length;
-  const score = Math.max(0, 100 - Math.abs(avgDiff) * 10); // Example scoring
-  return Math.min(100, parseFloat(score.toFixed(2)));
-});
-
-const scoreStatus = computed(() => {
-  const score = scorePercentage.value;
-  if (score >= 80) return 'success';
-  if (score >= 60) return 'warning';
-  return 'exception';
-});
-
-const scoreEvaluation = computed(() => {
-  const score = scorePercentage.value;
-  if (score >= 90) return '状态优秀，与正常范围偏差极小';
-  if (score >= 75) return '状态良好，有轻微偏差，建议观察';
-  if (score >= 60) return '状态一般，有明显偏差，建议干预';
-  return '状态较差，偏差显著，建议立即干预';
-});
-
 
 // Lifecycle hooks (from Code 1, modified for route params and cleanup)
 onMounted(() => {
   // Get patientId and doctorId from route query
   if (route.query.patientId) {
     patientId.value = route.query.patientId;
-    console.log('蓝牙页面接收到患者 ID:', patientId.value);
+    console.log('Bluetooth page received patient ID:', patientId.value);
   } else {
-    console.warn('蓝牙页面未接收到患者 ID');
-    ElMessage.error('未获取到患者 ID，无法进行数据关联');
+    console.warn('Bluetooth page did not receive patient ID');
+    ElMessage.error('Patient ID not received, cannot associate data');
   }
    if (route.query.doctorId) {
      doctorIdFromQuery.value = route.query.doctorId;
-     console.log('蓝牙页面接收到医生 ID:', doctorIdFromQuery.value);
+     console.log('Bluetooth page received doctor ID:', doctorIdFromQuery.value);
    }
 
 });
@@ -426,7 +390,7 @@ async function connectSingleDevice() {
     isConnecting.value = true;
     loadingInstance = ElLoading.service({
       lock: true,
-      text: '正在搜索并连接蓝牙设备...',
+      text: 'Searching and connecting to Bluetooth devices...',
       background: 'rgba(0, 0, 0, 0.7)'
     });
 
@@ -450,7 +414,7 @@ async function connectSingleDevice() {
     // Store device details and characteristics in a device object
     const deviceObj = {
       id: device.id,
-      name: device.name || `设备${devices.value.length + 1}`,
+      name: device.name || `Device${devices.value.length + 1}`,
       device, // Store the Web Bluetooth Device object
       server, // Store the GATT server object
       notifyChar, // Store the notification characteristic
@@ -471,11 +435,11 @@ async function connectSingleDevice() {
     // Add the event listener to the characteristic
     notifyChar.addEventListener('characteristicvaluechanged', deviceObj.handler);
 
-    ElMessage.success(`${device.name || '设备'}已连接！`);
+    ElMessage.success(`${device.name || 'Device'} connected!`);
 
   } catch (error) {
-    console.error('连接失败:', error);
-    ElMessage.error(`连接失败: ${error.message}`);
+    console.error('Connection failed:', error);
+    ElMessage.error(`Connection failed: ${error.message}`);
   } finally {
     isConnecting.value = false;
     if (loadingInstance) {
@@ -546,7 +510,7 @@ function handleData(event, deviceId) {
 function processDataPacket(bytes, device) {
   if (bytes.length < 20) {
     // This case should ideally not be hit if handleData logic is correct
-    console.error(`尝试处理不完整的数据包 (${bytes.length} bytes)`);
+    console.error(`Attempt to process incomplete data packet (${bytes.length} bytes)`);
     return null;
   }
 
@@ -567,7 +531,7 @@ function processDataPacket(bytes, device) {
       // val >= 32768 ? val - 65536 : val; <-- Removed this part from Code 1's original snippet here
       return val;
     } catch (e) {
-      console.error(`读取int16错误 (offset ${offset}):`, e);
+      console.error(`Read int16 error (offset ${offset}):`, e);
       return 0;
     }
   };
@@ -597,11 +561,11 @@ function processDataPacket(bytes, device) {
 // Starts the data collection process (from Code 1)
 function startDataCollection() {
   if (devices.value.length === 0) {
-    ElMessage.warning("请先连接至少1个设备！");
+    ElMessage.warning("Please connect at least 1 device!");
     return;
   }
    if (isCollecting.value) { // Prevent starting if already collecting
-     ElMessage.warning("已经在采集中!");
+     ElMessage.warning("Already collecting!");
      return;
    }
 
@@ -611,13 +575,13 @@ function startDataCollection() {
   imuDataArray.value.data = []; // Clear displayed data initially
   imuDataArray.value.currentPage = 0; // Reset pagination
 
-  ElMessage.success("开始采集数据...");
+  ElMessage.success("Started data collection...");
 }
 
 // Stops the data collection process (from Code 1, modified to save dataset)
 function stopDataCollection() {
   if (!isCollecting.value) {
-    ElMessage.info("当前未在采集数据");
+    ElMessage.info("Not currently collecting data");
     return;
   }
   isCollecting.value = false; // Set collecting state to false
@@ -626,12 +590,12 @@ function stopDataCollection() {
   if (rawImuData.value.length > 0) {
      collectedDataSets.value.push([...rawImuData.value]); // Store a copy of the current raw data
      collectionCount.value += 1; // Increment collection count
-     ElMessage.success(`第 ${collectionCount.value} 次采集完成，共采集 ${rawImuData.value.length} 条数据`);
+     ElMessage.success(`Collection ${collectionCount.value} completed, collected ${rawImuData.value.length} records`);
       if (collectionCount.value >= 2) {
-        ElMessage.info(`已完成${collectionCount.value}次采集，可以上传数据`);
+        ElMessage.info(`Completed ${collectionCount.value} collections, data can be uploaded`);
       }
   } else {
-      ElMessage.warning("停止采集，本次未采集到数据。");
+      ElMessage.warning("Collection stopped, no data collected this time.");
   }
   // *** End added from Code 2 ***
 
@@ -665,14 +629,14 @@ function handleDisconnect(deviceId) {
 
     // Check if all devices are disconnected
     if (devices.value.length === 0) {
-      ElMessage.info("所有设备已断开");
+      ElMessage.info("All devices disconnected");
       // If collection was ongoing and all devices are gone, stop it
       if (isCollecting.value) {
           stopDataCollection(); // This will save any partial data
       }
     } else {
        // Notify which specific device disconnected
-       ElMessage.warning(`${device.name || '设备'} 已断开连接`);
+       ElMessage.warning(`${device.name || 'Device'} disconnected`);
     }
   }
 }
@@ -680,7 +644,7 @@ function handleDisconnect(deviceId) {
 // Disconnects all connected devices (using logic from Code 2 for robustness)
 async function stopAllDevices() {
     if (devices.value.length === 0) {
-        ElMessage.info("没有设备需要断开");
+        ElMessage.info("No devices to disconnect");
         return;
     }
 
@@ -691,7 +655,7 @@ async function stopAllDevices() {
 
     const loading = ElLoading.service({ // Show loading indicator
         lock: true,
-        text: '正在断开所有设备...',
+        text: 'Disconnecting all devices...',
         background: 'rgba(0, 0, 0, 0.7)'
     });
 
@@ -721,7 +685,7 @@ async function stopAllDevices() {
                 // handleDisconnect listener will update the device list
             }
         } catch (error) {
-            console.error('断开设备错误:', error);
+            console.error('Disconnect device error:', error);
              // Log error but continue with other devices
         }
          // Return something to satisfy Promise.all
@@ -734,26 +698,26 @@ async function stopAllDevices() {
     // Final clear of the devices array to ensure UI is empty (handles edge cases)
     devices.value = [];
 
-    ElMessage.info("所有设备已断开");
+    ElMessage.info("All devices disconnected");
     loading.close();
 }
 
 // Exports collected data (currently in imuDataArray.data) to a CSV file (from Code 1)
 function exportToCSV() {
   if (collectedDataSets.value.length === 0) {
-    ElMessage.warning("没有数据可以导出");
+    ElMessage.warning("No data to export");
     return;
   }
 
   const loading = ElLoading.service({
     lock: true,
-    text: '正在准备CSV文件...',
+    text: 'Preparing CSV file...',
     background: 'rgba(0, 0, 0, 0.7)'
   });
 
   try {
     const headers = [
-      '时间戳', '设备ID', '设备名称',
+      'Timestamp', 'Device ID', 'Device Name',
       'AccX(g)', 'AccY(g)', 'AccZ(g)',
       'GyroX(°/s)', 'GyroY(°/s)', 'GyroZ(°/s)',
       'Roll(°)', 'Pitch(°)', 'Yaw(°)'
@@ -785,11 +749,11 @@ function exportToCSV() {
       URL.revokeObjectURL(url);
     });
 
-    ElMessage.success(`成功导出 ${collectedDataSets.value.length} 个CSV文件`);
+    ElMessage.success(`Successfully exported ${collectedDataSets.value.length} CSV files`);
 
   } catch (error) {
-    console.error('导出CSV失败:', error);
-    ElMessage.error('导出CSV失败');
+    console.error('CSV export failed:', error);
+    ElMessage.error('CSV export failed');
   } finally {
     loading.close();
   }
@@ -812,7 +776,7 @@ async function sendCsvToBackend() {
   isSending.value = true;
   const loading = ElLoading.service({
     lock: true,
-    text: "正在上传数据到服务器...",
+    text: "Uploading data to server...",
     background: "rgba(0, 0, 0, 0.7)",
   });
 
@@ -1031,7 +995,7 @@ function goBackToPatientManage() {
     });
   } else {
     console.warn("Doctor ID not available in route query, cannot navigate back to specific patient list.");
-    ElMessage.warning("无法确定医生信息，无法返回患者列表页面。");
+    ElMessage.warning("Unable to determine doctor information, cannot return to patient list page.");
     // Fallback navigation if doctorId is missing
     // router.push('/');
   }
@@ -1039,13 +1003,14 @@ function goBackToPatientManage() {
 </script>
 
 <style scoped>
-/* Basic Layout (from Code 1, enhanced by Code 2 styles) */
+/* 基础布局 */
 .app-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+/* 头部样式 */
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -1053,139 +1018,92 @@ function goBackToPatientManage() {
   background-color: #409EFF;
   color: white;
   padding: 0 20px;
-  height: 60px; /* Fixed height */
-  flex-shrink: 0; /* Prevent shrinking */
+  height: 60px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.header-left { /* Added for back button */
-  display: flex;
-  align-items: center;
-}
-
-.back-button { /* Added back button styles */
-  color: white;
-  margin-right: 20px;
-  font-size: 16px;
-}
-
-.back-button .el-icon {
-  margin-right: 5px;
-}
-
-
-.header-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
+/* 主内容区域 */
 .app-main {
+  flex: 1;
   padding: 20px;
   background-color: #f5f7fa;
-  flex-grow: 1; /* Allow main content to grow */
-  overflow: hidden; /* Manage overflow within the main section */
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  height: calc(100vh - 60px); /* 减去头部高度 */
 }
 
-/* Ensure the row takes up available space and contains scrolling */
-.app-main > .el-row {
-  flex-grow: 1;
-  display: flex; /* Use flex on row to manage columns */
-  flex-wrap: nowrap; /* Prevent columns from wrapping */
-  overflow: hidden; /* Hide overflow on the row itself */
+/* 行布局 */
+.el-row {
+  height: auto;
+  margin-bottom: 20px;
 }
 
-/* Column styling - main data table column takes more space */
-.app-main .el-col:first-child { /* Device list column */
-    height: 100%; /* Match parent row height */
-    display: flex; /* Use flex to make card fill height */
-    flex-direction: column;
-}
-.app-main .el-col:last-child { /* Main data + Analysis/Report column */
-    height: 100%; /* Match parent row height */
-    display: flex; /* Use flex to make card fill height */
-    flex-direction: column;
-}
-
-
-/* Card styling within columns */
+/* 左侧设备列表 */
 .device-list {
-  height: 100%; /* Fill the flex column */
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.device-list .el-card__body {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* 右侧主数据卡片 */
+.main-data-card {
   display: flex;
   flex-direction: column;
 }
-/* Allow device list body to scroll */
-.device-list .el-card__body {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-bottom: 0; /* Adjust padding if needed */
-}
 
-
-.main-data-card {
-    height: 100%; /* Fill the flex column */
-    display: flex;
-    flex-direction: column;
-}
-
-/* Main data card body layout */
 .main-data-card .el-card__body {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* Allow the body to grow */
-    overflow: hidden; /* Hide overflow to manage internal scrolling */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Ensure table and pagination fit within the main card body */
-.main-data-card .el-table {
-    flex-shrink: 0; /* Prevent table from shrinking if height is set */
-    margin-bottom: 15px; /* Space below table */
+/* 数据表格区域 */
+.el-table {
+  width: 100%;
+  margin-bottom: 20px;
 }
 
-.main-data-card .pagination {
-    flex-shrink: 0; /* Prevent pagination from shrinking */
-    margin-top: auto; /* Push pagination to the bottom if body grows */
-    margin-bottom: 15px;
+.el-table__body-wrapper {
+  max-height: 300px;
 }
 
-
-/* Container for Analysis and Report cards (from Code 2 styles) */
+/* 分析报告区域 */
 .analysis-report-container {
-    display: flex;
-    flex-grow: 1; /* Allow this container to fill remaining space */
-    gap: 20px; /* Space between analysis and report cards */
-    margin-top: 20px; /* Space above this section */
-    overflow: hidden; /* Hide overflow */
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-/* Individual Analysis and Report card styling (from Code 2 styles) */
-.analysis-card,
+/* 分析卡片 */
+.analysis-card {
+  flex: 1;
+  min-width: 45%;
+  margin-bottom: 20px;
+}
+
+/* 报告卡片 */
 .report-card {
-    flex: 1; /* Make them take equal width */
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Fill the flex container height */
+  flex: 1;
+  min-width: 45%;
+  margin-bottom: 20px;
 }
 
-/* Allow analysis/report card bodies to scroll */
-.analysis-card .el-card__body,
-.report-card .el-card__body {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-top: 0; /* Adjust padding if needed */
+/* 分析表格容器 */
+.analysis-table-container {
+  width: 100%;
+  overflow-x: auto;
 }
 
-
-/* Specific styles for data/report display (from Code 1/2) */
+/* 设备项样式 */
 .device-item {
   padding: 12px;
   border-bottom: 1px solid #eee;
-  margin-bottom: 8px;
-}
-
-.device-item:last-child {
-  border-bottom: none;
 }
 
 .device-info {
@@ -1193,23 +1111,58 @@ function goBackToPatientManage() {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  font-weight: bold;
 }
 
 .device-data {
   font-size: 12px;
   color: #666;
-  line-height: 1.5;
 }
 
+/* 响应式布局 */
+@media screen and (max-width: 1200px) {
+  .analysis-report-container {
+    flex-direction: column;
+  }
+  
+  .analysis-card,
+  .report-card {
+    min-width: 100%;
+  }
+}
+
+/* 卡片头部样式 */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .data-count {
   font-size: 14px;
   color: #666;
+}
+
+/* 按钮组样式 */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.back-button {
+  color: white;
+  margin-right: 20px;
+}
+
+/* 确保内容不会被截断 */
+.el-card__body {
+  height: auto !important;
+  overflow: visible !important;
 }
 </style>

@@ -1,24 +1,24 @@
 // mock.js
 import Mock from 'mockjs';
 
-// 设置全局延迟，模拟网络请求
+// Set global delay to simulate network requests
 Mock.setup({
-  timeout: '200-600' // 设置请求延迟时间，单位毫秒
+  timeout: '200-600' // Set request delay time in milliseconds
 });
 
-// --- 硬编码的模拟数据 ---
+// --- Hardcoded mock data ---
 
-// 模拟用户数据 (包含姓名和所有字段)
+// Mock user data (including names and all fields)
 const initialUsers = [
   { id: '1', name: 'admin', password: 'password', isAdmin: true, isDoctor: false, isPatient: false },
 
-  // 10 个医生数据
-  { id: '101', name: 'doctor1', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13810001011', hospital: '北京协和医院', department: '内科' },
-  { id: '102', name: 'doctor2', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13920002022', hospital: '上海华山医院', department: '外科' },
-  { id: '103', name: '赵强', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13030003033', hospital: '广州中山医院', department: '儿科' },
-  { id: '104', name: '钱莉莉', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13140004044', hospital: '深圳人民医院', department: '妇产科' },
-  { id: '105', name: '孙海涛', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13250005055', hospital: '武汉同济医院', department: '骨科' },
-  { id: '106', name: '周文静', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13360006066', hospital: '成都华西医院', department: '眼科' },
+  // 10 doctors data
+  { id: '101', name: 'doctor1', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13810001011', hospital: 'Beijing Union Hospital', department: 'Internal Medicine' },
+  { id: '102', name: 'doctor2', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13920002022', hospital: 'Shanghai Huashan Hospital', department: 'Surgery' },
+  { id: '103', name: 'Zhao Qiang', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13030003033', hospital: 'Guangzhou Zhongshan Hospital', department: 'Pediatrics' },
+  { id: '104', name: 'Qian Lili', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13140004044', hospital: 'Shenzhen People Hospital', department: 'Obstetrics' },
+  { id: '105', name: 'Sun Haitao', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13250005055', hospital: 'Wuhan Tongji Hospital', department: 'Orthopedics' },
+  { id: '106', name: 'Zhou Wenjing', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13360006066', hospital: 'Chengdu West China Hospital', department: 'Ophthalmology' },
   { id: '107', name: '吴宇飞', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13470007077', hospital: '杭州第一医院', department: '耳鼻喉科' },
   { id: '108', name: '郑秀丽', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13580008088', hospital: '南京鼓楼医院', department: '皮肤科' },
   { id: '109', name: '冯建国', password: 'password', isAdmin: false, isDoctor: true, isPatient: false, phone: '13690009099', hospital: '天津医科大学总医院', department: '心血管内科' },
@@ -215,34 +215,34 @@ const patientReports = {
 };
 
 
-// --- 辅助函数 ---
+// --- Helper functions ---
 
-// 根据 ID 查找医生 (此函数仍在接口中使用，保留)
+// Find doctor by ID (this function is still used in the interface, so it's kept)
 const findDoctorById = (id) => doctors.find(doctor => doctor.id === String(id));
-// 根据 ID 查找患者 (此函数仍在接口中使用，保留)
+// Find patient by ID (this function is still used in the interface, so it's kept)
 const findPatientById = (id) => patientsData.find(patient => patient.id === String(id));
 
 
-// ✅ 修改：模拟权限检查函数，使其始终通过，不再需要参数
+// ✅ Modified: Simulate permission check function, always pass, no parameters needed
 const checkAdminOrRelatedDoctor = () => {
-    // 在不进行实际认证检查时，模拟一个具有所有权限的用户
-    // 注意：这仅用于开发和演示目的，真实后端绝不能这样做！
+    // In the absence of actual authentication check, simulate a user with full permissions
+    // Note: This is only for development and demonstration purposes, real backend should not do this!
     return {
         status: 200,
-        user: { // 返回一个模拟用户，带有管理员和医生标志
-            id: 'mock_user_id', // 一个虚拟ID
+        user: { // Return a simulated user with admin and doctor flags
+            id: 'mock_user_id', // A virtual ID
             name: 'Mock User',
             isAdmin: true,
             isDoctor: true,
-            isPatient: true // 模拟用户啥权限都有
+            isPatient: true // Simulate user having all permissions
         }
     };
 };
 
 
-// --- 模拟接口 ---
+// --- Simulated API ---
 
-// 模拟登录接口 /api/session (POST) - 此接口无需认证，保留原样
+// Simulated login API /api/session (POST) - This interface does not require authentication, kept as is
 Mock.mock('/api/session', 'post', (req) => {
     const { username, password } = JSON.parse(req.body);
     const user = initialUsers.find(u => (u.name === username || u.phone === username) && u.password === password);
@@ -251,7 +251,7 @@ Mock.mock('/api/session', 'post', (req) => {
       return {
         status: 200,
         data: {
-          id: user.id, // 在登录成功时返回用户ID
+          id: user.id, // Return user ID when login is successful
           name: user.name,
           isAdmin: user.isAdmin,
           isDoctor: user.isDoctor,
@@ -267,12 +267,12 @@ Mock.mock('/api/session', 'post', (req) => {
     }
 });
 
-// 模拟注册接口 /api/users (POST) - 主要用于患者注册，此接口无需认证，保留原样
+// Simulated registration API /api/users (POST) - Mainly used for patient registration, this interface does not require authentication, kept as is
 Mock.mock('/api/users', 'post', (options) => {
     const body = JSON.parse(options.body);
     const { name, phone, gender, birthDate, idType, idNumber, password } = body;
 
-    // 注册时检查姓名、手机号或身份证号冲突
+    // Check for name, phone number, or ID number conflict during registration
     const existingUser = initialUsers.find(u =>
         u.name === name ||
         (phone && u.phone === phone) ||
@@ -286,19 +286,19 @@ Mock.mock('/api/users', 'post', (options) => {
         };
     } else {
         const newUser = {
-            id: Mock.mock('@increment').toString(), // 使用 Mock.mock('@increment') 生成数字，再转字符串 ID
+            id: Mock.mock('@increment').toString(), // Use Mock.mock('@increment') to generate a number, then convert to string ID
             name, password,
-            phone: phone || null, // 允许为空
-            gender: gender || null, // 允许为空
-            birthDate: birthDate || null, // 允许为空
-            idType: idType || null, // 允许为空
-            idNumber: idNumber || null, // 允许为空
+            phone: phone || null, // Allow null
+            gender: gender || null, // Allow null
+            birthDate: birthDate || null, // Allow null
+            idType: idType || null, // Allow null
+            idNumber: idNumber || null, // Allow null
             isAdmin: false,
             isDoctor: false,
-            isPatient: true, // 默认患者
+            isPatient: true, // Default patient
         };
         initialUsers.push(newUser);
-        // 注册新用户后，更新派生的患者列表和医生列表
+        // After registering a new user, update the derived patient list and doctor list
         patientsData = initialUsers.filter(user => user.isPatient);
         doctors = initialUsers.filter(user => user.isDoctor);
 
@@ -315,28 +315,28 @@ Mock.mock('/api/users', 'post', (options) => {
 
 
 Mock.mock(/\/api\/doctors\/(\d+)\/patients(\?.*)?$/, 'get', (options) => {
-    // 1. 权限检查
+    // 1. Permission check
     const authResult = checkAdminOrRelatedDoctor();
     if (authResult.status !== 200) {
         return authResult;
     }
 
-    // 2. 解析URL参数（修正后的方式）
+    // 2. Parse URL parameters (corrected way)
     const queryString = options.url.split('?')[1] || '';
     const params = new URLSearchParams(queryString);
     const doctorId = options.url.match(/\/api\/doctors\/(\d+)\/patients/)[1];
 
-    // 3. 获取分页参数
+    // 3. Get pagination parameters
     const page = parseInt(params.get('page') || 1);
     const pageSize = parseInt(params.get('pageSize') || 8);
 
-    // 4. 获取搜索参数（添加默认值）
+    // 4. Get search parameters (add default values)
     const searchName = params.get('name') || '';
     const searchPhone = params.get('phone') || '';
     const searchGender = params.get('gender') || '';
     const searchIdNumber = params.get('idNumber') || '';
 
-    // 5. 获取该医生的所有患者关系
+    // 5. Get all patient relationships of the doctor
     let doctorPatients = relations
         .filter(rel => rel.doctorId === String(doctorId))
         .map(rel => {
@@ -352,7 +352,7 @@ Mock.mock(/\/api\/doctors\/(\d+)\/patients(\?.*)?$/, 'get', (options) => {
         })
         .filter(patient => patient !== null);
 
-    // 6. 应用搜索条件（添加属性存在性检查）
+    // 6. Apply search conditions (add existence check)
     if (searchName) {
         doctorPatients = doctorPatients.filter(p =>
             p.name && p.name.toLowerCase().includes(searchName.toLowerCase())
@@ -374,13 +374,13 @@ Mock.mock(/\/api\/doctors\/(\d+)\/patients(\?.*)?$/, 'get', (options) => {
         );
     }
 
-    // 7. 分页处理
+    // 7. Pagination handling
     const total = doctorPatients.length;
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const paginatedData = doctorPatients.slice(startIndex, endIndex);
 
-    // 8. 返回响应
+    // 8. Return response
     return {
         status: 200,
         data: paginatedData.map(p => ({
@@ -399,7 +399,7 @@ Mock.mock(/\/api\/doctors\/(\d+)\/patients(\?.*)?$/, 'get', (options) => {
         message: '获取患者列表成功'
     };
 });
-// 辅助函数：计算年龄（与relations接口风格一致）
+// Helper function: Calculate age (consistent with relations interface style)
 function calculateAge(birthDate) {
     if (!birthDate) return null;
     const birthYear = new Date(birthDate).getFullYear();
@@ -407,18 +407,18 @@ function calculateAge(birthDate) {
     return currentYear - birthYear;
 }
 
-// 模拟获取患者报告接口 /api/patient/:patientId/reports (GET)
+// Simulated API for getting patient reports /api/patient/:patientId/reports (GET)
 Mock.mock(/\/api\/patient\/(\d+)\/reports/, 'get', (options) => {
   const patientId = options.url.split('/').reverse()[1];
-  // ✅ 调用修改后的权限检查函数，不再传递参数
+  // ✅ Call modified permission check function, no parameters needed
   const authResult = checkAdminOrRelatedDoctor();
   if (authResult.status !== 200) {
-      return authResult; // 不会执行到这里
+      return authResult; // Will not execute here
   }
 
-  // 直接从 patientReports object 中获取数据
+  // Directly get data from patientReports object
   const reports = patientReports[patientId] || [];
-   // 这里不需要再次排序，因为硬编码时可以保持顺序
+   // No need to sort again here, as the data is hardcoded and can be kept in order
   return {
       status: 200,
       message: '获取报告成功',
@@ -427,30 +427,30 @@ Mock.mock(/\/api\/patient\/(\d+)\/reports/, 'get', (options) => {
 });
 
 
-// 模拟 GET /api/admin/doctors (分页列表 带搜索条件)
+// Simulated GET /api/admin/doctors (paginated list with search conditions)
 Mock.mock(/\/api\/admin\/doctors(\?.*)?$/, 'get', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor();
      if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
+          return authResult; // Will not execute here
      }
 
     const { url } = options;
     const params = new URLSearchParams(url.split('?')[1]);
 
-    // 获取分页参数
+    // Get pagination parameters
     const page = parseInt(params.get('page') || 1);
     const pageSize = parseInt(params.get('pageSize') || 20);
 
-    // 获取搜索参数
+    // Get search parameters
     const searchName = params.get('name') || '';
     const searchPhone = params.get('phone') || '';
     const searchHospital = params.get('hospital') || '';
     const searchDepartment = params.get('department') || '';
 
 
-    // 根据搜索条件过滤 doctors 数组
-    let filteredDoctors = doctors; // 从全部医生开始过滤
+    // Filter doctors array based on search conditions
+    let filteredDoctors = doctors; // Start filtering from all doctors
 
     if (searchName) {
         const lowerCaseSearchName = searchName.toLowerCase();
@@ -480,14 +480,14 @@ Mock.mock(/\/api\/admin\/doctors(\?.*)?$/, 'get', (options) => {
     }
 
 
-    // 获取过滤后的总数
+    // Get total count of filtered results
     const totalFiltered = filteredDoctors.length;
 
-    // 对过滤后的结果进行分页切片
+    // Slice filtered results into pages
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const list = filteredDoctors.slice(startIndex, endIndex).map(doc => ({
-         // 返回医生列表所需字段
+         // Fields needed for doctor list
          id: doc.id,
          name: doc.name,
          phone: doc.phone,
@@ -498,18 +498,18 @@ Mock.mock(/\/api\/admin\/doctors(\?.*)?$/, 'get', (options) => {
 
     return {
         status: 200,
-        data: list, // 返回分页后的数据
-        total: totalFiltered, // 返回过滤后的总数
+        data: list, // Return paginated data
+        total: totalFiltered, // Return total count of filtered results
         message: '获取医生列表成功'
     };
 });
 
-// 模拟 POST /api/admin/doctors (注册医生)
+// Simulated POST /api/admin/doctors (register doctor)
 Mock.mock('/api/admin/doctors', 'post', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
     const authResult = checkAdminOrRelatedDoctor();
     if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
+          return authResult; // Will not execute here
      }
 
     const body = JSON.parse(options.body);
@@ -530,13 +530,13 @@ Mock.mock('/api/admin/doctors', 'post', (options) => {
     }
 
     const newDoctor = {
-        id: Mock.mock('@increment').toString(), // 使用 Mock.mock('@increment') 生成数字，再转字符串 ID
+        id: Mock.mock('@increment').toString(), // Use Mock.mock('@increment') to generate a number, then convert to string ID
         name, password, phone, hospital, department,
         isAdmin: false, isDoctor: true, isPatient: false,
     };
 
     initialUsers.push(newDoctor);
-    // 注册新用户后，更新派生的医生和患者列表
+    // After registering a new user, update the derived doctor and patient lists
     patientsData = initialUsers.filter(user => user.isPatient);
     doctors = initialUsers.filter(user => user.isDoctor);
 
@@ -544,16 +544,16 @@ Mock.mock('/api/admin/doctors', 'post', (options) => {
     return {
         status: 201, // Created
         message: '医生注册成功',
-        data: { id: newDoctor.id, name: newDoctor.name } // 可以在成功时返回一些数据
+        data: { id: newDoctor.id, name: newDoctor.name } // Can return some data when successful
     };
 });
 
-// 模拟 PUT /api/admin/doctors/:id (更新医生)
+// Simulated PUT /api/admin/doctors/:id (update doctor)
 Mock.mock(/\/api\/admin\/doctors\/(\d+)/, 'put', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor();
     if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
+          return authResult; // Will not execute here
      }
 
     const idMatch = options.url.match(/\/api\/admin\/doctors\/(\d+)/);
@@ -564,25 +564,25 @@ Mock.mock(/\/api\/admin\/doctors\/(\d+)/, 'put', (options) => {
     }
 
     const body = JSON.parse(options.body);
-    // 允许部分更新，只取 body 中存在的字段
+    // Allow partial update, only take fields from body
     const { name, phone, hospital, department, password } = body;
 
-     // 检查 body 是否为空
+     // Check if body is empty
      if (Object.keys(body).length === 0) {
          return { status: 400, message: '请求体缺少需要更新的字段' };
      }
 
 
-    const doctorIndex = initialUsers.findIndex(user => user.id === doctorId && user.isDoctor); // 在 initialUsers 中查找医生
+    const doctorIndex = initialUsers.findIndex(user => user.id === doctorId && user.isDoctor); // Find doctor in initialUsers
 
     if (doctorIndex === -1) {
         return { status: 404, message: '未找到该医生' };
     }
 
-     // 检查更新后的姓名或电话是否与其他用户冲突 (排除当前医生自己)
+     // Check if updated name or phone conflicts with other users (excluding current doctor)
     const conflictUser = initialUsers.find(user =>
         user.id !== doctorId &&
-        ( (name !== undefined && user.name === name) || (phone !== undefined && user.phone === phone) ) // 仅检查 body 中提供的字段
+        ( (name !== undefined && user.name === name) || (phone !== undefined && user.phone === phone) ) // Check only fields provided in body
     );
 
     if (conflictUser) {
@@ -590,20 +590,20 @@ Mock.mock(/\/api\/admin\/doctors\/(\d+)/, 'put', (options) => {
     }
 
 
-    // 更新 initialUsers 中的医生信息
+    // Update doctor information in initialUsers
     const doctorToUpdate = initialUsers[doctorIndex];
     if (name !== undefined) doctorToUpdate.name = name;
     if (phone !== undefined) doctorToUpdate.phone = phone;
     if (hospital !== undefined) doctorToUpdate.hospital = hospital;
     if (department !== undefined) doctorToUpdate.department = department;
-    if (password !== undefined) doctorToUpdate.password = password; // 如果前端发送了密码字段
+    if (password !== undefined) doctorToUpdate.password = password; // If frontend sent password field
 
-    // 更新派生的医生和患者列表
+    // Update derived doctor and patient lists
     doctors = initialUsers.filter(user => user.isDoctor);
     patientsData = initialUsers.filter(user => user.isPatient);
 
-     // 如果医生姓名更新了，需要同步更新 relations 数组中相关的 doctorName
-     // 这里的 relations 数组没有 id，所以直接修改找到的对象是没问题的
+     // If doctor's name has changed, need to update related doctorName in relations array
+     // The relations array doesn't have id, so directly modifying the found object is fine
      relations.forEach(rel => {
         if (rel.doctorId === doctorId) {
             rel.doctorName = doctorToUpdate.name;
@@ -614,12 +614,12 @@ Mock.mock(/\/api\/admin\/doctors\/(\d+)/, 'put', (options) => {
     return { status: 200, message: '医生信息更新成功' };
 });
 
-// 模拟 DELETE /api/admin/doctors/:id (删除医生)
+// Simulated DELETE /api/admin/doctors/:id (delete doctor)
 Mock.mock(/\/api\/admin\/doctors\/(\d+)/, 'delete', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor();
     if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
+          return authResult; // Will not execute here
      }
 
 
@@ -636,31 +636,31 @@ Mock.mock(/\/api\/admin\/doctors\/(\d+)/, 'delete', (options) => {
         return { status: 404, message: '未找到该医生' };
     }
 
-     // 💡 Mock 中直接删除关联的关系和报告
-     relations = relations.filter(rel => rel.doctorId !== doctorId); // ⬅️ 修改 relations 数组
+     // 💡 Mock directly deletes related relationships and reports
+     relations = relations.filter(rel => rel.doctorId !== doctorId); // ⬅️ Modify relations array
 
-     // 删除医生的患者的报告 (如果医生是患者的唯一关联医生，并且业务允许删除患者) - 这个逻辑复杂，先跳过
-     // 简单处理：删除该医生的关系即可
+     // Delete the doctor's patients' reports (if the doctor is the only associated doctor for a patient and business allows deleting patients) - This logic is complex, so we'll skip it for now
+     // Simple handling: Delete the relationship of the doctor
 
 
-    // 从 initialUsers 中删除医生
+    // Delete doctor from initialUsers
     initialUsers.splice(doctorIndex, 1);
 
-    // 更新派生的医生和患者列表
+    // Update derived doctor and patient lists
     doctors = initialUsers.filter(user => user.isDoctor);
     patientsData = initialUsers.filter(user => user.isPatient);
 
 
-    return { status: 204, message: '医生删除成功' }; // 204 No Content 规范表示删除成功且无返回体
+    return { status: 204, message: '医生删除成功' }; // 204 No Content standard indicates successful deletion and no return body
 });
 
 
-// 模拟 GET /api/admin/doctors/search (远程搜索医生)
+// Simulated GET /api/admin/doctors/search (remote search for doctors)
 Mock.mock(/\/api\/admin\/doctors\/search(\?.*)?$/, 'get', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
     const authResult = checkAdminOrRelatedDoctor(); // Allow doctors too
     if (authResult.status !== 200) {
-         return authResult; // 不会执行到这里
+         return authResult; // Will not execute here
     }
 
 
@@ -671,14 +671,14 @@ Mock.mock(/\/api\/admin\/doctors\/search(\?.*)?$/, 'get', (options) => {
     const lowerCaseQuery = query.toLowerCase();
 
     const filteredDoctors = doctors.filter(doctor =>
-        // 使用 typeof 检查确保是字符串再调用 toLowerCase
+        // Check if it's a string before calling toLowerCase
         (typeof doctor.name === 'string' && doctor.name.toLowerCase().includes(lowerCaseQuery)) ||
-        (doctor.phone && String(doctor.phone).includes(query)) || // 电话确保是字符串再包含
+        (doctor.phone && String(doctor.phone).includes(query)) || // Ensure it's a string before including
         (typeof doctor.hospital === 'string' && doctor.hospital.toLowerCase().includes(lowerCaseQuery)) ||
         (typeof doctor.department === 'string' && doctor.department.toLowerCase().includes(lowerCaseQuery))
     );
 
-    const result = filteredDoctors.slice(0, 50).map(doc => ({ // 搜索结果限制50条
+    const result = filteredDoctors.slice(0, 50).map(doc => ({ // Limit search results to 50
          id: doc.id,
          name: doc.name
     }));
@@ -691,30 +691,30 @@ Mock.mock(/\/api\/admin\/doctors\/search(\?.*)?$/, 'get', (options) => {
 });
 
 
-// 模拟 GET /api/admin/patients (分页列表 带搜索条件)
+// Simulated GET /api/admin/patients (paginated list with search conditions)
 Mock.mock(/\/api\/admin\/patients(\?.*)?$/, 'get', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
     const authResult = checkAdminOrRelatedDoctor();
     if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
+          return authResult; // Will not execute here
      }
 
     const { url } = options;
     const params = new URLSearchParams(url.split('?')[1]);
 
-    // 获取分页参数
+    // Get pagination parameters
     const page = parseInt(params.get('page') || 1);
     const pageSize = parseInt(params.get('pageSize') || 20);
 
-    // 获取搜索参数
+    // Get search parameters
     const searchName = params.get('name') || '';
     const searchPhone = params.get('phone') || '';
     const searchGender = params.get('gender') || '';
     const searchIdNumber = params.get('idNumber') || '';
 
 
-    // 根据搜索条件过滤 patientsData 数组
-    let filteredPatients = patientsData; // 从全部患者开始过滤
+    // Filter patientsData array based on search conditions
+    let filteredPatients = patientsData; // Start filtering from all patients
 
     if (searchName) {
         const lowerCaseSearchName = searchName.toLowerCase();
@@ -744,37 +744,37 @@ Mock.mock(/\/api\/admin\/patients(\?.*)?$/, 'get', (options) => {
     }
 
 
-    // 获取过滤后的总数
+    // Get total count of filtered results
     const totalFiltered = filteredPatients.length;
 
-    // 对过滤后的结果进行分页切片
+    // Slice filtered results into pages
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     const list = filteredPatients.slice(startIndex, endIndex).map(pat => ({
-         // 返回患者列表所需字段
+         // Fields needed for patient list
          id: pat.id,
          name: pat.name,
          phone: pat.phone,
          gender: pat.gender,
-         birthDate: pat.birthDate, // 添加出生日期
-         idNumber: pat.idNumber,   // 添加身份证号
+         birthDate: pat.birthDate, // Add birth date
+         idNumber: pat.idNumber,   // Add ID number
     }));
 
 
     return {
         status: 200,
-        data: list, // 返回分页后的数据
-        total: totalFiltered, // 返回过滤后的总数
+        data: list, // Return paginated data
+        total: totalFiltered, // Return total count of filtered results
         message: '获取患者列表成功'
     };
 });
 
-// 模拟 GET /api/admin/patients/search (远程搜索患者)
+// Simulated GET /api/admin/patients/search (remote search for patients)
 Mock.mock(/\/api\/admin\/patients\/search(\?.*)?$/, 'get', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
     const authResult = checkAdminOrRelatedDoctor(); // Allow doctors too
     if (authResult.status !== 200) {
-         return authResult; // 不会执行到这里
+         return authResult; // Will not execute here
     }
 
     const { url } = options;
@@ -784,14 +784,14 @@ Mock.mock(/\/api\/admin\/patients\/search(\?.*)?$/, 'get', (options) => {
     const lowerCaseQuery = query.toLowerCase();
 
     const filteredPatients = patientsData.filter(patient =>
-        // 使用 typeof 检查确保是字符串再调用 toLowerCase
+        // Check if it's a string before calling toLowerCase
         (typeof patient.name === 'string' && patient.name.toLowerCase().includes(lowerCaseQuery)) ||
         (patient.phone && String(patient.phone).includes(query)) ||
         (typeof patient.gender === 'string' && patient.gender.toLowerCase().includes(lowerCaseQuery)) ||
         (typeof patient.idNumber === 'string' && patient.idNumber.toLowerCase().includes(lowerCaseQuery))
     );
 
-    const result = filteredPatients.slice(0, 50).map(pat => ({ // 搜索结果限制50条
+    const result = filteredPatients.slice(0, 50).map(pat => ({ // Limit search results to 50
          id: pat.id,
          name: pat.name
     }));
@@ -803,12 +803,12 @@ Mock.mock(/\/api\/admin\/patients\/search(\?.*)?$/, 'get', (options) => {
     };
 });
 
-// 模拟 PUT /api/admin/patients/:id (更新患者)
+// Simulated PUT /api/admin/patients/:id (update patient)
 Mock.mock(/\/api\/admin\/patients\/(\d+)/, 'put', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor();
     if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
+          return authResult; // Will not execute here
      }
 
     const idMatch = options.url.match(/\/api\/admin\/patients\/(\d+)/);
@@ -819,25 +819,25 @@ Mock.mock(/\/api\/admin\/patients\/(\d+)/, 'put', (options) => {
     }
 
     const body = JSON.parse(options.body);
-    // 允许部分更新，只取 body 中存在的字段
+    // Allow partial update, only take fields from body
     const { name, phone, gender, birthDate, idType, idNumber, password } = body;
 
-     // 检查 body 是否为空
+     // Check if body is empty
      if (Object.keys(body).length === 0) {
          return { status: 400, message: '请求体缺少需要更新的字段' };
      }
 
 
-    const patientIndex = initialUsers.findIndex(user => user.id === patientId && user.isPatient); // 在 initialUsers 中查找患者
+    const patientIndex = initialUsers.findIndex(user => user.id === patientId && user.isPatient); // Find patient in initialUsers
 
     if (patientIndex === -1) {
         return { status: 404, message: '未找到该患者' };
     }
 
-     // 检查更新后的姓名、电话或身份证号是否与其他用户冲突 (排除当前患者自己)
+     // Check if updated name, phone, or ID number conflicts with other users (excluding current patient)
     const conflictUser = initialUsers.find(user =>
         user.id !== patientId &&
-        ( (name !== undefined && user.name === name) || (phone !== undefined && user.phone === phone) || (idNumber !== undefined && user.idNumber === idNumber) ) // 仅检查 body 中提供的字段
+        ( (name !== undefined && user.name === name) || (phone !== undefined && user.phone === phone) || (idNumber !== undefined && user.idNumber === idNumber) ) // Check only fields provided in body
     );
 
     if (conflictUser) {
@@ -845,7 +845,7 @@ Mock.mock(/\/api\/admin\/patients\/(\d+)/, 'put', (options) => {
     }
 
 
-    // 更新 initialUsers 中的患者信息
+    // Update patient information in initialUsers
     const patientToUpdate = initialUsers[patientIndex];
     if (name !== undefined) patientToUpdate.name = name;
     if (phone !== undefined) patientToUpdate.phone = phone;
@@ -853,14 +853,14 @@ Mock.mock(/\/api\/admin\/patients\/(\d+)/, 'put', (options) => {
     if (birthDate !== undefined) patientToUpdate.birthDate = birthDate;
     if (idType !== undefined) patientToUpdate.idType = idType;
     if (idNumber !== undefined) patientToUpdate.idNumber = idNumber;
-    if (password !== undefined) patientToUpdate.password = password; // 如果前端发送了密码字段
+    if (password !== undefined) patientToUpdate.password = password; // If frontend sent password field
 
-    // 更新派生的医生和患者列表
+    // Update derived doctor and patient lists
     doctors = initialUsers.filter(user => user.isDoctor);
     patientsData = initialUsers.filter(user => user.isPatient);
 
-     // 如果患者姓名更新了，需要同步更新 relations 数组中相关的 patientName
-     // 这里的 relations 数组没有 id，所以直接修改找到的对象是没问题的
+     // If patient's name has changed, need to update related patientName in relations array
+     // The relations array doesn't have id, so directly modifying the found object is fine
      relations.forEach(rel => {
         if (rel.patientId === patientId) {
             rel.patientName = patientToUpdate.name;
@@ -871,12 +871,12 @@ Mock.mock(/\/api\/admin\/patients\/(\d+)/, 'put', (options) => {
     return { status: 200, message: '患者信息更新成功' };
 });
 
-// 模拟 DELETE /api/admin/patients/:id (删除患者)
+// Simulated DELETE /api/admin/patients/:id (delete patient)
 Mock.mock(/\/api\/admin\/patients\/(\d+)/, 'delete', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor();
     if (authResult.status !== 200) {
-          return authResult; // 不会执行到这里
+          return authResult; // Will not execute here
      }
 
     const idMatch = options.url.match(/\/api\/admin\/patients\/(\d+)/);
@@ -892,74 +892,74 @@ Mock.mock(/\/api\/admin\/patients\/(\d+)/, 'delete', (options) => {
         return { status: 404, message: '未找到该患者' };
     }
 
-     // 💡 Mock 中直接删除关联的关系和报告
-     relations = relations.filter(rel => rel.patientId !== patientId); // ⬅️ 修改 relations 数组
+     // 💡 Mock directly deletes related relationships and reports
+     relations = relations.filter(rel => rel.patientId !== patientId); // ⬅️ Modify relations array
 
-     // 删除该患者的所有报告
+     // Delete all reports for the patient
      if (patientReports[patientId]) {
          delete patientReports[patientId];
      }
 
 
-    // 从 initialUsers 中删除患者
+    // Delete patient from initialUsers
     initialUsers.splice(patientIndex, 1);
 
-    // 更新派生的医生和患者列表
+    // Update derived doctor and patient lists
     doctors = initialUsers.filter(user => user.isDoctor);
     patientsData = initialUsers.filter(user => user.isPatient);
 
 
-    return { status: 204, message: '患者删除成功' }; // 204 No Content 规范表示删除成功且无返回体
+    return { status: 204, message: '患者删除成功' }; // 204 No Content standard indicates successful deletion and no return body
 });
 
 
-// 模拟 GET /api/admin/relations (分页列表 带搜索条件)
+// Simulated GET /api/admin/relations (paginated list with search conditions)
 Mock.mock(/\/api\/admin\/relations(\?.*)?$/, 'get', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor();
      if (authResult.status !== 200) {
-         return authResult; // 不会执行到这里
+         return authResult; // Will not execute here
      }
 
     const { url } = options;
     const params = new URLSearchParams(url.split('?')[1]);
 
-    // 获取分页参数
+    // Get pagination parameters
     const page = parseInt(params.get('page') || 1);
     const pageSize = parseInt(params.get('pageSize') || 20);
 
-    // 获取搜索参数
+    // Get search parameters
     const searchDoctorName = params.get('doctorName') || '';
     const searchDoctorPhone = params.get('doctorPhone') || '';
     const searchPatientName = params.get('patientName') || '';
     const searchPatientPhone = params.get('patientPhone') || '';
 
-    // 根据权限过滤关系列表: 如果是医生，只显示自己的关系 (这里的过滤逻辑仍然保留，因为它是 Mock 数据的一部分，但权限检查已失效)
+    // Filter relationship list based on permissions: If doctor, only show their own relationships (the filtering logic is still retained here because it's part of the Mock data, but permission check is no longer valid)
     let accessibleRelations = relations;
-    // ✅ 注释掉实际的权限过滤逻辑，让所有用户都能看到所有关系
+    // ✅ Comment out actual permission filtering logic, allowing all users to see all relationships
     /*
-    // 注意：由于 checkAdminOrRelatedDoctor 不再接收 options 和 doctorIdInRelation，
-    // 这里的 user 对象实际上是 checkAdminOrRelatedDoctor 中返回的模拟用户
+    // Note: Since checkAdminOrRelatedDoctor no longer receives options and doctorIdInRelation,
+    // the user object in checkAdminOrRelatedDoctor is actually the simulated user returned
     if (authResult.user.isDoctor && !authResult.user.isAdmin) { // If user is doctor AND NOT admin
-        // 这里 authResult.user.id 会是 'mock_user_id'
+        // authResult.user.id will be 'mock_user_id' here
         accessibleRelations = relations.filter(rel => rel.doctorId === authResult.user.id);
     }
     */
 
 
-    // 根据搜索条件过滤 accessibleRelations 数组
-    let filteredRelations = accessibleRelations; // 从可访问关系开始过滤
+    // Filter accessibleRelations array based on search conditions
+    let filteredRelations = accessibleRelations; // Start filtering from accessible relationships
 
     if (searchDoctorName) {
         const lowerCaseSearchDoctorName = searchDoctorName.toLowerCase();
         filteredRelations = filteredRelations.filter(rel =>
-             // 确保 doctorName 是字符串再进行匹配
+             // Ensure doctorName is a string before matching
             typeof rel.doctorName === 'string' && rel.doctorName.toLowerCase().includes(lowerCaseSearchDoctorName)
         );
     }
 
     if (searchDoctorPhone) {
-        // 需要找到关系中的医生，然后根据医生ID找到其电话进行匹配
+        // Need to find the doctor in the relationship to match their phone number based on doctorID
         filteredRelations = filteredRelations.filter(rel => {
             const doctor = findDoctorById(rel.doctorId);
             return doctor && typeof doctor.phone === 'string' && doctor.phone.includes(searchDoctorPhone);
@@ -969,37 +969,37 @@ Mock.mock(/\/api\/admin\/relations(\?.*)?$/, 'get', (options) => {
      if (searchPatientName) {
         const lowerCaseSearchPatientName = searchPatientName.toLowerCase();
         filteredRelations = filteredRelations.filter(rel =>
-             // 确保 patientName 是字符串再进行匹配
+             // Ensure patientName is a string before matching
              typeof rel.patientName === 'string' && rel.patientName.toLowerCase().includes(lowerCaseSearchPatientName)
         );
     }
 
     if (searchPatientPhone) {
-         // 需要找到关系中的患者，然后根据患者ID找到其电话进行匹配
+         // Need to find the patient in the relationship to match their phone number based on patientID
         filteredRelations = filteredRelations.filter(rel => {
             const patient = findPatientById(rel.patientId);
             return patient && typeof patient.phone === 'string' && patient.phone.includes(searchPatientPhone);
         });
     }
 
-    // 获取过滤后的总数
+    // Get total count of filtered results
     const totalFiltered = filteredRelations.length;
 
-    // 对过滤后的结果进行分页切片
+    // Slice filtered results into pages
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    // 关系对象不再有 id
+    // Relationships no longer have id
     const list = filteredRelations.slice(startIndex, endIndex).map(relation => {
-         // 关联数据，查找名称（硬编码中已包含，这里再查找确保最新，但Mock简单处理直接用relation里的）
-        // 这里的 map 可以简化，因为过滤后的 relations 已经包含了 name field
-        // 为了确保名称与用户数据同步，还是保留查找
-        const doctor = findDoctorById(relation.doctorId); // 再次查找以确保名称最新（如果医生信息被修改）
-        const patient = findPatientById(relation.patientId); // 再次查找以确保名称最新（如果患者信息被修改）
+         // Associated data, find name (name is already included in hardcoded data, so we're just ensuring it's up-to-date here)
+        // The map here can be simplified because the filtered relations already contain name field
+        // To ensure name is synchronized with user data, we're still checking
+        const doctor = findDoctorById(relation.doctorId); // Check again to ensure latest name (if doctor information has been modified)
+        const patient = findPatientById(relation.patientId); // Check again to ensure latest name (if patient information has been modified)
          return {
-            // id: relation.id, // 移除 id
+            // id: relation.id, // Remove id
             doctorId: relation.doctorId,
             patientId: relation.patientId,
-            // 使用查找到的最新名称，或者回退使用关系中存储的名称
+            // Use the latest name found, or fall back to the name stored in the relationship
             doctorName: doctor ? doctor.name : relation.doctorName || '未知医生',
             patientName: patient ? patient.name : relation.patientName || '未知患者',
          };
@@ -1008,24 +1008,24 @@ Mock.mock(/\/api\/admin\/relations(\?.*)?$/, 'get', (options) => {
 
     return {
         status: 200,
-        data: list, // 返回分页后的数据
-        total: totalFiltered, // 返回过滤后的总数
+        data: list, // Return paginated data
+        total: totalFiltered, // Return total count of filtered results
         message: '获取医患关系列表成功'
     };
 });
 
 
-// 模拟 POST /api/admin/relations (添加关系)
+// Simulated POST /api/admin/relations (add relationship)
 Mock.mock('/api/admin/relations', 'post', (options) => {
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor(); // doctorIdInRelation is determined by the request body
      if (authResult.status !== 200) {
-         return authResult; // 不会执行到这里
+         return authResult; // Will not execute here
      }
 
 
     const body = JSON.parse(options.body);
-    const { doctorId, patientId } = body; // 仍然期望 doctorId 和 patientId
+    const { doctorId, patientId } = body; // Still expect doctorId and patientId
 
     if (!doctorId || !patientId) {
          return {
@@ -1033,7 +1033,7 @@ Mock.mock('/api/admin/relations', 'post', (options) => {
         };
     }
 
-     // ✅ 注释掉医生只能添加自己的关系的权限判断
+     // ✅ Comment out doctor's permission to only add their own relationships
      /*
      if (authResult.user.isDoctor && !authResult.user.isAdmin && authResult.user.id !== String(doctorId)) {
           return { status: 403, message: '医生只能添加自己的医患关系' };
@@ -1057,12 +1057,12 @@ Mock.mock('/api/admin/relations', 'post', (options) => {
         };
     }
 
-    // ✅ 新的关系对象没有 id 字段
+    // ✅ New relationship object does not have id field
     const newRelation = {
         doctorId: String(doctorId),
         patientId: String(patientId),
-        doctorName: doctor.name, // 添加名称
-        patientName: patient.name // 添加名称
+        doctorName: doctor.name, // Add name
+        patientName: patient.name // Add name
     };
 
     relations.push(newRelation);
@@ -1070,13 +1070,13 @@ Mock.mock('/api/admin/relations', 'post', (options) => {
     return {
         status: 201,
         message: '关系添加成功',
-        data: newRelation // 返回新添加的关系对象 (没有 id)
+        data: newRelation // Return new added relationship object (no id)
     };
 });
 
 
-// 修改：模拟 PUT /api/admin/relations (更新关系)
-// URL 不再包含 ID，通过 body 携带旧 ID 和新 ID
+// Modified: Simulated PUT /api/admin/relations (update relationship)
+// URL no longer contains ID, relationship ID is carried in body
 Mock.mock('/api/admin/relations', 'put', (options) => {
      const body = JSON.parse(options.body);
      const { oldDoctorId, oldPatientId, newDoctorId, newPatientId } = body;
@@ -1085,13 +1085,13 @@ Mock.mock('/api/admin/relations', 'put', (options) => {
          return { status: 400, message: '请求体缺少旧的医患ID或新的医患ID' };
      }
 
-     // ✅ 调用修改后的权限检查函数，不再传递参数
+     // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor(); // checkAdminOrRelatedDoctor will always pass
      if (authResult.status !== 200) {
-         return authResult; // 不会执行到这里
+         return authResult; // Will not execute here
      }
 
-     // ✅ 注释掉医生只能更新自己的关系的权限判断
+     // ✅ Comment out doctor's permission to only update their own relationships
      /*
      if (authResult.user.isDoctor && !authResult.user.isAdmin && authResult.user.id !== String(oldDoctorId)) {
           return { status: 403, message: '医生只能更新自己的医患关系' };
@@ -1099,7 +1099,7 @@ Mock.mock('/api/admin/relations', 'put', (options) => {
      */
 
 
-    // 查找要更新的旧关系
+    // Find old relationship to update
     const oldRelationIndex = relations.findIndex(rel =>
         String(rel.doctorId) === String(oldDoctorId) &&
         String(rel.patientId) === String(oldPatientId)
@@ -1109,7 +1109,7 @@ Mock.mock('/api/admin/relations', 'put', (options) => {
         return { status: 404, message: '未找到指定的旧医患关系' };
     }
 
-     // 检查新的医患关系是否存在 (如果新旧ID不同)
+     // Check if new relationship exists (if new and old IDs are different)
      const isNewRelationSameAsOld = String(oldDoctorId) === String(newDoctorId) && String(oldPatientId) === String(newPatientId);
 
      if (!isNewRelationSameAsOld) {
@@ -1122,7 +1122,7 @@ Mock.mock('/api/admin/relations', 'put', (options) => {
          }
      }
 
-     // 查找新的医生和患者是否存在
+     // Check if new doctor and patient exist
      const newDoctor = findDoctorById(newDoctorId);
      const newPatient = findPatientById(newPatientId);
 
@@ -1131,15 +1131,15 @@ Mock.mock('/api/admin/relations', 'put', (options) => {
      }
 
 
-    // 找到旧的关系对象并更新其属性（或者删除旧的，添加新的）
-    // Mock 中直接修改对象更方便
+    // Find old relationship object and update its properties (or delete old one and add new one)
+    // Mock directly modifying object is more convenient
     const updatedRelation = relations[oldRelationIndex];
     updatedRelation.doctorId = String(newDoctorId);
     updatedRelation.patientId = String(newPatientId);
-    updatedRelation.doctorName = newDoctor.name; // 更新名称
-    updatedRelation.patientName = newPatient.name; // 更新名称
+    updatedRelation.doctorName = newDoctor.name; // Update name
+    updatedRelation.patientName = newPatient.name; // Update name
 
-     // ✅ 注释掉医生无法将关系转移给其他医生的权限判断
+     // ✅ Comment out doctor's permission to transfer relationship to other doctors
      /*
      if (authResult.user.isDoctor && !authResult.user.isAdmin && String(newDoctorId) !== authResult.user.id) {
          return { status: 403, message: '医生无法将关系转移给其他医生' };
@@ -1150,11 +1150,11 @@ Mock.mock('/api/admin/relations', 'put', (options) => {
     return {
         status: 200,
         message: '医患关系更新成功',
-        data: updatedRelation // 返回更新后的对象 (没有 id)
+        data: updatedRelation // Return updated object (no id)
     };
 });
 
-// 修改：模拟 DELETE /api/admin/relations/:doctorId/:patientId (删除关系)
+// Modified: Simulated DELETE /api/admin/relations/:doctorId/:patientId (delete relationship)
 Mock.mock(/\/api\/admin\/relations\/(\d+)\/(\d+)/, 'delete', (options) => {
     const idMatch = options.url.match(/\/api\/admin\/relations\/(\d+)\/(\d+)/);
     const doctorId = idMatch ? String(idMatch[1]) : null;
@@ -1167,13 +1167,13 @@ Mock.mock(/\/api\/admin\/relations\/(\d+)\/(\d+)/, 'delete', (options) => {
         };
     }
 
-    // ✅ 调用修改后的权限检查函数，不再传递参数
+    // ✅ Call modified permission check function, no parameters needed
      const authResult = checkAdminOrRelatedDoctor(); // checkAdminOrRelatedDoctor will always pass
      if (authResult.status !== 200) {
-         return authResult; // 不会执行到这里
+         return authResult; // Will not execute here
      }
 
-     // ✅ 注释掉医生只能删除自己的关系的权限判断
+     // ✅ Comment out doctor's permission to delete their own relationships
      /*
      if (authResult.user.isDoctor && !authResult.user.isAdmin && authResult.user.id !== String(doctorId)) {
           return { status: 403, message: '医生只能删除自己的医患关系' };
@@ -1192,7 +1192,7 @@ Mock.mock(/\/api\/admin\/relations\/(\d+)\/(\d+)/, 'delete', (options) => {
         };
     }
 
-    // 删除数据
+    // Delete data
     relations.splice(relationIndex, 1);
 
     return {
@@ -1231,17 +1231,17 @@ import dayjs from 'dayjs'
 const reportsDB = []
 let reportCounter = 1
 
-// 固定模式的报告数据生成器
+// Fixed pattern report data generator
 const generateFixedReportData = () => ({
   "标准幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   "运动幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
   "差值": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 })
 
-// 拦截CSV上传路由
+// Intercept CSV upload route
 Mock.mock(/\/api\/upload\/csv/, 'post', (options) => {
   try {
-    // 解析 FormData (模拟)
+    // Parse FormData (simulated)
     const formData = new URLSearchParams(options.body)
     const patientId = formData.get('patientId')
 
@@ -1252,27 +1252,27 @@ Mock.mock(/\/api\/upload\/csv/, 'post', (options) => {
       })
     }
 
-    // 生成固定模式的报告数据
+    // Generate fixed pattern report data
     const reportData = {
       reportId: `rep_${reportCounter++}`,
       receivedAt: dayjs().toISOString(),
       reportData: generateFixedReportData()
     }
 
-    // 存入数据库
+    // Save to database
     reportsDB.push({
       ...reportData,
       patientId,
       createdAt: new Date().toISOString()
     })
 
-    // 返回严格符合要求的响应
+    // Return strictly compliant response
     return {
       status: 200,
       data: {
         receivedAt: reportData.receivedAt,
         reportId: reportData.reportId,
-        reportData: reportData.reportData  // 包含固定1-12的数组
+        reportData: reportData.reportData  // Includes fixed 1-12 array
       },
       message: 'CSV 文件上传成功'
     }
@@ -1284,7 +1284,7 @@ Mock.mock(/\/api\/upload\/csv/, 'post', (options) => {
   }
 })
 
-// 报告更新接口（保持不变）
+// Report update interface (unchanged)
 Mock.mock(/\/api\/report\/\w+/, 'put', (options) => {
   const urlParts = options.url.split('/')
   const reportId = urlParts[urlParts.length - 1]
@@ -1312,7 +1312,7 @@ Mock.mock(/\/api\/report\/\w+/, 'put', (options) => {
   })
 })
 
-// 获取报告详情（返回固定数据）
+// Get report details (return fixed data)
 Mock.mock(/\/api\/reports\/\w+/, 'get', (options) => {
   const urlParts = options.url.split('/')
   const reportId = urlParts[urlParts.length - 1]
@@ -1329,7 +1329,7 @@ Mock.mock(/\/api\/reports\/\w+/, 'get', (options) => {
     status: 200,
     data: {
       ...report,
-      // 确保返回固定1-12的数组
+      // Ensure fixed 1-12 array is returned
       reportData: {
         "标准幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         "运动幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],

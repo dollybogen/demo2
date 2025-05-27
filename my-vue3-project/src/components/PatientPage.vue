@@ -7,16 +7,16 @@
         @click="goBackToPatientManage"
         class="back-button"
       >
-        <el-icon><ArrowLeft /></el-icon> <span>返回患者列表</span>
+        <el-icon><ArrowLeft /></el-icon> <span>Back to Patient List</span>
       </el-button>
-      <h2>患者步态分析报告</h2>
+      <h2>Patient Gait Analysis Report</h2>
     </div>
 
     <div class="content">
       <div class="search-bar">
         <el-input
           v-model="searchQuery"
-          placeholder="搜索历史记录 (日期/类型/摘要)"
+          placeholder="Search History (Date/Type/Summary)"
           clearable
           style="width: 300px;"
         />
@@ -24,16 +24,16 @@
 
       <div class="report-list-container">
         <el-table :data="filteredRecords" border stripe style="width: 100%" @row-click="showReportDetails">
-          <el-table-column prop="date" label="日期" sortable width="150" />
-          <el-table-column prop="type" label="报告类型" sortable width="180" />
-          <el-table-column prop="summary" label="摘要" min-width="200" />
+          <el-table-column prop="date" label="Date" sortable width="150" />
+          <el-table-column prop="type" label="Report Type" sortable width="180" />
+          <el-table-column prop="summary" label="Summary" min-width="200" />
         </el-table>
       </div>
 
       <div v-if="selectedReportData" class="report-details">
-        <h3>{{ selectedReportData.date }} - {{ selectedReportData.type }} 步态分析数据</h3>
+        <h3>{{ selectedReportData.date }} - {{ selectedReportData.type }} Gait Analysis Data</h3>
         <el-table :data="gaitDataTable" border stripe style="width: 100%">
-          <el-table-column prop="name" label="指标" width="180" />
+          <el-table-column prop="name" label="Metric" width="180" />
           <el-table-column
             v-for="(col, index) in gaitColumns"
             :key="index"
@@ -41,10 +41,10 @@
             :label="col"
             width="120"
           />
-           </el-table>
+        </el-table>
       </div>
       <div v-else class="no-report-selected">
-        请点击表格中的报告查看详细数据。
+        Please click on a report in the table to view detailed data.
       </div>
     </div>
   </div>
@@ -179,7 +179,7 @@ const goBackToPatientManage = () => {
         // 理论上如果按钮显示了，doctorId 就应该存在，
         // 但作为备用处理，如果 doctorId 不存在，可以导航到其他页面或给出提示
         console.warn("Doctor ID is missing, cannot navigate back to Patient Manage.");
-        // ElMessage.warning("医生信息丢失，无法返回患者列表页面。");
+        // ElMessage.warning("Doctor information missing, cannot return to patient list page.");
         // router.push('/'); // 例如：回首页
     }
 };

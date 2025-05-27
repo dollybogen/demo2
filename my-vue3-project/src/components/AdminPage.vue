@@ -4,96 +4,96 @@
     <el-card class="admin-card" shadow="always">
       <template #header>
         <div class="card-header">
-          <h2>医生与患者关系管理</h2>
+          <h2>Doctor and Patient Relationship Management</h2>
         </div>
       </template>
 
-      <el-divider content-position="left">注册医生</el-divider>
+      <el-divider content-position="left">Register Doctor</el-divider>
       <el-form :inline="true" :model="registerForm" class="form">
-        <el-form-item label="密码">
-          <el-input v-model="registerForm.password" type="password" placeholder="医生密码" />
+        <el-form-item label="Password">
+          <el-input v-model="registerForm.password" type="password" placeholder="Doctor Password" />
         </el-form-item>
-        <el-form-item label="姓名">
-          <el-input v-model="registerForm.name" placeholder="医生姓名" />
+        <el-form-item label="Name">
+          <el-input v-model="registerForm.name" placeholder="Doctor Name" />
         </el-form-item>
-        <el-form-item label="电话">
-          <el-input v-model="registerForm.phone" placeholder="医生电话" />
+        <el-form-item label="Phone">
+          <el-input v-model="registerForm.phone" placeholder="Doctor Phone" />
         </el-form-item>
-        <el-form-item label="医院">
-          <el-input v-model="registerForm.hospital" placeholder="所属医院" />
+        <el-form-item label="Hospital">
+          <el-input v-model="registerForm.hospital" placeholder="Hospital" />
         </el-form-item>
-        <el-form-item label="科室">
-          <el-input v-model="registerForm.department" placeholder="所属科室" />
+        <el-form-item label="Department">
+          <el-input v-model="registerForm.department" placeholder="Department" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="registerLoading" @click="registerDoctor">注册</el-button>
+          <el-button type="primary" :loading="registerLoading" @click="registerDoctor">Register</el-button>
         </el-form-item>
       </el-form>
 
-      <el-divider content-position="left">添加医生-患者关系</el-divider>
+      <el-divider content-position="left">Add Doctor-Patient Relationship</el-divider>
       <div class="add-relation-section">
           <div class="add-relation-selector">
-              <h3>选择医生</h3>
+              <h3>Select Doctor</h3>
               <el-form :inline="true" :model="addRelationDoctorSearchCriteria" class="form">
-                  <el-form-item label="姓名">
-                      <el-input v-model="addRelationDoctorSearchCriteria.name" placeholder="输入医生姓名" clearable size="small"/>
+                  <el-form-item label="Name">
+                      <el-input v-model="addRelationDoctorSearchCriteria.name" placeholder="Enter Doctor Name" clearable size="small"/>
                   </el-form-item>
-                  <el-form-item label="电话">
-                      <el-input v-model="addRelationDoctorSearchCriteria.phone" placeholder="输入医生电话" clearable size="small"/>
+                  <el-form-item label="Phone">
+                      <el-input v-model="addRelationDoctorSearchCriteria.phone" placeholder="Enter Doctor Phone" clearable size="small"/>
                   </el-form-item>
                   <el-form-item>
-                      <el-button type="primary" @click="searchDoctorsForRelation" size="small">搜索医生</el-button>
+                      <el-button type="primary" @click="searchDoctorsForRelation" size="small">Search Doctor</el-button>
                   </el-form-item>
               </el-form>
               <el-table :data="addRelationDoctorSearchResults" stripe style="width: 100%; margin-top: 10px;" max-height="200" :show-header="true">
-                  <el-table-column prop="name" label="姓名" width="150"></el-table-column>
-                  <el-table-column prop="phone" label="电话" width="150"></el-table-column>
-                   <el-table-column prop="hospital" label="医院"></el-table-column>
-                   <el-table-column prop="department" label="科室"></el-table-column>
-                  <el-table-column label="操作" width="80">
+                  <el-table-column prop="name" label="Name" width="150"></el-table-column>
+                  <el-table-column prop="phone" label="Phone" width="150"></el-table-column>
+                   <el-table-column prop="hospital" label="Hospital"></el-table-column>
+                   <el-table-column prop="department" label="Department"></el-table-column>
+                  <el-table-column label="Action" width="80">
                       <template #default="scope">
-                          <el-button type="primary" size="small" @click="selectDoctorForRelation(scope.row)">选择</el-button>
+                          <el-button type="primary" size="small" @click="selectDoctorForRelation(scope.row)">Select</el-button>
                       </template>
                   </el-table-column>
               </el-table>
               <div v-if="selectedDoctorForRelation" style="margin-top: 10px; color: #67c23a;">
-                  已选医生: **{{ selectedDoctorForRelation.name }}** ({{ selectedDoctorForRelation.phone }})
+                   Selected Doctor: **{{ selectedDoctorForRelation.name }}** ({{ selectedDoctorForRelation.phone }})
               </div>
           </div>
 
           <div class="add-relation-selector">
-              <h3>选择患者</h3>
+              <h3>Select Patient</h3>
               <el-form :inline="true" :model="addRelationPatientSearchCriteria" class="form">
-                  <el-form-item label="姓名">
-                      <el-input v-model="addRelationPatientSearchCriteria.name" placeholder="输入患者姓名" clearable size="small"/>
+                  <el-form-item label="Name">
+                      <el-input v-model="addRelationPatientSearchCriteria.name" placeholder="Enter Patient Name" clearable size="small"/>
                   </el-form-item>
-                  <el-form-item label="电话">
-                      <el-input v-model="addRelationPatientSearchCriteria.phone" placeholder="输入患者电话" clearable size="small"/>
+                  <el-form-item label="Phone">
+                      <el-input v-model="addRelationPatientSearchCriteria.phone" placeholder="Enter Patient Phone" clearable size="small"/>
                   </el-form-item>
-                   <el-form-item label="性别">
-                      <el-input v-model="addRelationPatientSearchCriteria.gender" placeholder="输入患者性别" clearable size="small"/>
+                   <el-form-item label="Gender">
+                      <el-input v-model="addRelationPatientSearchCriteria.gender" placeholder="Enter Patient Gender" clearable size="small"/>
                   </el-form-item>
-                   <el-form-item label="身份证号">
-                      <el-input v-model="addRelationPatientSearchCriteria.idNumber" placeholder="输入患者身份证号" clearable size="small"/>
+                   <el-form-item label="ID Number">
+                      <el-input v-model="addRelationPatientSearchCriteria.idNumber" placeholder="Enter Patient ID Number" clearable size="small"/>
                   </el-form-item>
                   <el-form-item>
-                      <el-button type="primary" @click="searchPatientsForRelation" size="small">搜索患者</el-button>
+                      <el-button type="primary" @click="searchPatientsForRelation" size="small">Search Patient</el-button>
                   </el-form-item>
               </el-form>
               <el-table :data="addRelationPatientSearchResults" stripe style="width: 100%; margin-top: 10px;" max-height="200" :show-header="true">
-                   <el-table-column prop="name" label="姓名" width="150"></el-table-column>
-                   <el-table-column prop="phone" label="电话" width="150"></el-table-column>
-                   <el-table-column prop="gender" label="性别" width="80"></el-table-column>
-                   <el-table-column prop="birthDate" label="出生日期" width="120"></el-table-column>
-                   <el-table-column prop="idNumber" label="身份证号"></el-table-column>
-                  <el-table-column label="操作" width="80">
+                   <el-table-column prop="name" label="Name" width="150"></el-table-column>
+                   <el-table-column prop="phone" label="Phone" width="150"></el-table-column>
+                   <el-table-column prop="gender" label="Gender" width="80"></el-table-column>
+                   <el-table-column prop="birthDate" label="Birth Date" width="120"></el-table-column>
+                   <el-table-column prop="idNumber" label="ID Number"></el-table-column>
+                  <el-table-column label="Action" width="80">
                       <template #default="scope">
-                          <el-button type="primary" size="small" @click="selectPatientForRelation(scope.row)">选择</el-button>
+                          <el-button type="primary" size="small" @click="selectPatientForRelation(scope.row)">Select</el-button>
                       </template>
                   </el-table-column>
               </el-table>
                <div v-if="selectedPatientForRelation" style="margin-top: 10px; color: #67c23a;">
-                  已选患者: **{{ selectedPatientForRelation.name }}** ({{ selectedPatientForRelation.phone }})
+                   Selected Patient: **{{ selectedPatientForRelation.name }}** ({{ selectedPatientForRelation.phone }})
               </div>
           </div>
 
@@ -104,48 +104,48 @@
                   @click="addRelation"
                   :disabled="!selectedDoctorForRelation || !selectedPatientForRelation"
               >
-                  确认添加关系
+                   Confirm Add Relationship
               </el-button>
                <el-button
                    type="info"
                    @click="resetAddRelation"
                    :disabled="!selectedDoctorForRelation && !selectedPatientForRelation && addRelationDoctorSearchResults.length === 0 && addRelationPatientSearchResults.length === 0"
                 >
-                   重置选择
+                    Reset Selection
                </el-button>
           </div>
       </div>
 
 
-       <el-divider content-position="left">医患关系搜索与列表</el-divider>
+       <el-divider content-position="left">Doctor-Patient Relationship Search and List</el-divider>
        <el-form :inline="true" :model="searchCriteria" class="form">
-           <el-form-item label="医生姓名">
-               <el-input v-model="searchCriteria.doctorName" placeholder="输入医生姓名" clearable />
+           <el-form-item label="Doctor Name">
+               <el-input v-model="searchCriteria.doctorName" placeholder="Enter Doctor Name" clearable />
            </el-form-item>
-            <el-form-item label="医生电话">
-               <el-input v-model="searchCriteria.doctorPhone" placeholder="输入医生电话" clearable />
+            <el-form-item label="Doctor Phone">
+               <el-input v-model="searchCriteria.doctorPhone" placeholder="Enter Doctor Phone" clearable />
            </el-form-item>
-            <el-form-item label="患者姓名">
-               <el-input v-model="searchCriteria.patientName" placeholder="输入患者姓名" clearable />
+            <el-form-item label="Patient Name">
+               <el-input v-model="searchCriteria.patientName" placeholder="Enter Patient Name" clearable />
            </el-form-item>
-            <el-form-item label="患者电话">
-               <el-input v-model="searchCriteria.patientPhone" placeholder="输入患者电话" clearable />
+            <el-form-item label="Patient Phone">
+               <el-input v-model="searchCriteria.patientPhone" placeholder="Enter Patient Phone" clearable />
            </el-form-item>
            <el-form-item>
-               <el-button type="primary" @click="searchRelations">搜索关系</el-button>
-                <el-button @click="resetSearch">重置</el-button>
+               <el-button type="primary" @click="searchRelations">Search Relationship</el-button>
+                <el-button @click="resetSearch">Reset</el-button>
            </el-form-item>
        </el-form>
 
       <el-table :data="relations" style="width: 100%" :loading="relationsLoading" key="relationsTable">
-         <el-table-column prop="doctorName" label="医生" width="280">
+         <el-table-column prop="doctorName" label="Doctor" width="280">
            <template #default="scope">
              <div class="cell-content">
                  <span v-if="editingRelationPair.doctorId !== scope.row.doctorId || editingRelationPair.patientId !== scope.row.patientId">{{ scope.row.doctorName }}</span>
                  <el-select
                    v-else
                    v-model="scope.row.doctorId"
-                   placeholder="输入姓名、电话等搜索医生"
+                   placeholder="Enter Doctor Name or Phone"
                    filterable
                    remote
                    :remote-method="remoteMethodDoctors"
@@ -164,14 +164,14 @@
              </div>
            </template>
          </el-table-column>
-         <el-table-column prop="patientName" label="患者" width="280">
+         <el-table-column prop="patientName" label="Patient" width="280">
            <template #default="scope">
              <div class="cell-content">
                 <span v-if="editingRelationPair.doctorId !== scope.row.doctorId || editingRelationPair.patientId !== scope.row.patientId">{{ scope.row.patientName }}</span>
                 <el-select
                    v-else
                   v-model="scope.row.patientId"
-                  placeholder="输入姓名、电话等搜索患者"
+                  placeholder="Enter Patient Name or Phone"
                   filterable
                   remote
                   :remote-method="remoteMethodPatients"
@@ -190,15 +190,15 @@
              </div>
            </template>
          </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="Action" width="200">
           <template #default="scope">
              <template v-if="editingRelationPair.doctorId !== scope.row.doctorId || editingRelationPair.patientId !== scope.row.patientId">
-                <el-button size="small" type="primary" @click="startEditingRelation(scope.row)">编辑</el-button>
-                 <el-button size="small" type="danger" :loading="deleteLoading[`${scope.row.doctorId}-${scope.row.patientId}`]" @click="deleteRelation(scope.$index, scope.row)">删除</el-button>
+                <el-button size="small" type="primary" @click="startEditingRelation(scope.row)">Edit</el-button>
+                 <el-button size="small" type="danger" :loading="deleteLoading[`${scope.row.doctorId}-${scope.row.patientId}`]" @click="deleteRelation(scope.$index, scope.row)">Delete</el-button>
              </template>
              <template v-else>
-                 <el-button size="small" type="success" :loading="updateLoading[`${scope.row.doctorId}-${scope.row.patientId}`]" @click="updateRelation(scope.$index, scope.row)">保存</el-button>
-                <el-button size="small" type="info" @click="cancelEditingRelation(scope.row)">取消</el-button>
+                 <el-button size="small" type="success" :loading="updateLoading[`${scope.row.doctorId}-${scope.row.patientId}`]" @click="updateRelation(scope.$index, scope.row)">Save</el-button>
+                <el-button size="small" type="info" @click="cancelEditingRelation(scope.row)">Cancel</el-button>
              </template>
           </template>
         </el-table-column>
@@ -217,28 +217,28 @@
       />
 
 
-      <el-divider content-position="left" style="margin-top: 30px;">已注册医生账户</el-divider>
+      <el-divider content-position="left" style="margin-top: 30px;">Registered Doctor Accounts</el-divider>
       <el-form :inline="true" :model="doctorSearchCriteria" class="form">
-           <el-form-item label="姓名">
-               <el-input v-model="doctorSearchCriteria.name" placeholder="输入医生姓名" clearable />
+           <el-form-item label="Name">
+               <el-input v-model="doctorSearchCriteria.name" placeholder="Enter Doctor Name" clearable />
            </el-form-item>
-            <el-form-item label="电话">
-               <el-input v-model="doctorSearchCriteria.phone" placeholder="输入医生电话" clearable />
+            <el-form-item label="Phone">
+               <el-input v-model="doctorSearchCriteria.phone" placeholder="Enter Doctor Phone" clearable />
            </el-form-item>
-            <el-form-item label="医院">
-               <el-input v-model="doctorSearchCriteria.hospital" placeholder="输入医生医院" clearable />
+            <el-form-item label="Hospital">
+               <el-input v-model="doctorSearchCriteria.hospital" placeholder="Enter Doctor Hospital" clearable />
            </el-form-item>
-            <el-form-item label="科室">
-               <el-input v-model="doctorSearchCriteria.department" placeholder="输入医生科室" clearable />
+            <el-form-item label="Department">
+               <el-input v-model="doctorSearchCriteria.department" placeholder="Enter Doctor Department" clearable />
            </el-form-item>
            <el-form-item>
-               <el-button type="primary" @click="searchDoctorsTable">搜索医生</el-button>
-               <el-button @click="resetDoctorSearch">重置</el-button>
+               <el-button type="primary" @click="searchDoctorsTable">Search Doctor</el-button>
+               <el-button @click="resetDoctorSearch">Reset</el-button>
            </el-form-item>
        </el-form>
 
       <el-table :data="doctors" style="width: 100%" :loading="doctorsLoading" key="doctorsTable" id="doctorsTable">
-        <el-table-column prop="name" label="姓名" width="150">
+        <el-table-column prop="name" label="Name" width="150">
             <template #default="scope">
               <div class="cell-content">
                  <span v-if="editingDoctorId !== scope.row.id">{{ scope.row.name }}</span>
@@ -246,7 +246,7 @@
               </div>
             </template>
         </el-table-column>
-        <el-table-column prop="phone" label="电话" width="150">
+        <el-table-column prop="phone" label="Phone" width="150">
              <template #default="scope">
                <div class="cell-content">
                  <span v-if="editingDoctorId !== scope.row.id">{{ scope.row.phone }}</span>
@@ -254,7 +254,7 @@
                </div>
             </template>
         </el-table-column>
-        <el-table-column prop="hospital" label="医院" width="200">
+        <el-table-column prop="hospital" label="Hospital" width="200">
              <template #default="scope">
                <div class="cell-content">
                  <span v-if="editingDoctorId !== scope.row.id">{{ scope.row.hospital }}</span>
@@ -262,7 +262,7 @@
                </div>
             </template>
         </el-table-column>
-        <el-table-column prop="department" label="科室" width="150">
+        <el-table-column prop="department" label="Department" width="150">
              <template #default="scope">
                <div class="cell-content">
                  <span v-if="editingDoctorId !== scope.row.id">{{ scope.row.department }}</span>
@@ -270,15 +270,15 @@
                </div>
             </template>
         </el-table-column>
-         <el-table-column label="操作" width="200">
+         <el-table-column label="Action" width="200">
            <template #default="scope">
              <template v-if="editingDoctorId !== scope.row.id">
-                <el-button size="small" type="primary" @click="startEditingDoctor(scope.row)">编辑</el-button>
-                <el-button size="small" type="danger" :loading="deleteLoading[scope.row.id]" @click="deleteDoctor(scope.$index, scope.row)">删除</el-button>
+                <el-button size="small" type="primary" @click="startEditingDoctor(scope.row)">Edit</el-button>
+                <el-button size="small" type="danger" :loading="deleteLoading[scope.row.id]" @click="deleteDoctor(scope.$index, scope.row)">Delete</el-button>
              </template>
               <template v-else>
-                <el-button size="small" type="success" :loading="updateLoading[scope.row.id]" @click="updateDoctor(scope.$index, scope.row)">保存</el-button>
-                <el-button size="small" type="info" @click="cancelEditingDoctor(scope.row)">取消</el-button>
+                <el-button size="small" type="success" :loading="updateLoading[scope.row.id]" @click="updateDoctor(scope.$index, scope.row)">Save</el-button>
+                <el-button size="small" type="info" @click="cancelEditingDoctor(scope.row)">Cancel</el-button>
              </template>
            </template>
          </el-table-column>
@@ -296,28 +296,28 @@
         style="margin-top: 20px; text-align: right;"
       />
 
-       <el-divider content-position="left" style="margin-top: 30px;">患者管理</el-divider>
+       <el-divider content-position="left" style="margin-top: 30px;">Patient Management</el-divider>
         <el-form :inline="true" :model="patientSearchCriteria" class="form">
-           <el-form-item label="姓名">
-               <el-input v-model="patientSearchCriteria.name" placeholder="输入患者姓名" clearable />
+           <el-form-item label="Name">
+               <el-input v-model="patientSearchCriteria.name" placeholder="Enter Patient Name" clearable />
            </el-form-item>
-            <el-form-item label="电话">
-               <el-input v-model="patientSearchCriteria.phone" placeholder="输入患者电话" clearable />
+            <el-form-item label="Phone">
+               <el-input v-model="patientSearchCriteria.phone" placeholder="Enter Patient Phone" clearable />
            </el-form-item>
-            <el-form-item label="性别">
-               <el-input v-model="patientSearchCriteria.gender" placeholder="输入患者性别" clearable />
+            <el-form-item label="Gender">
+               <el-input v-model="patientSearchCriteria.gender" placeholder="Enter Patient Gender" clearable />
            </el-form-item>
-            <el-form-item label="身份证号">
-               <el-input v-model="patientSearchCriteria.idNumber" placeholder="输入患者身份证号" clearable />
+            <el-form-item label="ID Number">
+               <el-input v-model="patientSearchCriteria.idNumber" placeholder="Enter Patient ID Number" clearable />
            </el-form-item>
            <el-form-item>
-               <el-button type="primary" @click="searchPatientsTable">搜索患者</el-button>
-               <el-button @click="resetPatientSearch">重置</el-button>
+               <el-button type="primary" @click="searchPatientsTable">Search Patient</el-button>
+               <el-button @click="resetPatientSearch">Reset</el-button>
            </el-form-item>
        </el-form>
 
        <el-table :data="patientsData" style="width: 100%" :loading="patientsLoading" key="patientsTable" id="patientsTable">
-            <el-table-column prop="name" label="姓名" width="150">
+            <el-table-column prop="name" label="Name" width="150">
                 <template #default="scope">
                    <div class="cell-content">
                     <span v-if="editingPatientId !== scope.row.id">{{ scope.row.name }}</span>
@@ -325,7 +325,7 @@
                    </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="phone" label="电话" width="150">
+            <el-table-column prop="phone" label="Phone" width="150">
                 <template #default="scope">
                   <div class="cell-content">
                     <span v-if="editingPatientId !== scope.row.id">{{ scope.row.phone }}</span>
@@ -333,7 +333,7 @@
                   </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="gender" label="性别" width="80" align="center">
+            <el-table-column prop="gender" label="Gender" width="80" align="center">
                 <template #default="scope">
                    <div class="cell-content">
                     <span v-if="editingPatientId !== scope.row.id">{{ scope.row.gender }}</span>
@@ -341,7 +341,7 @@
                    </div>
                 </template>
             </el-table-column>
-            <el-table-column prop="birthDate" label="出生日期" width="150">
+            <el-table-column prop="birthDate" label="Birth Date" width="150">
                 <template #default="scope">
                    <div class="cell-content">
                     <span v-if="editingPatientId !== scope.row.id">{{ scope.row.birthDate }}</span>
@@ -349,7 +349,7 @@
                    </div>
                 </template>
             </el-table-column>
-             <el-table-column prop="idNumber" label="身份证号" width="200">
+             <el-table-column prop="idNumber" label="ID Number" width="200">
                 <template #default="scope">
                    <div class="cell-content">
                     <span v-if="editingPatientId !== scope.row.id">{{ scope.row.idNumber }}</span>
@@ -357,15 +357,15 @@
                    </div>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" width="200">
+            <el-table-column label="Action" width="200">
               <template #default="scope">
                  <template v-if="editingPatientId !== scope.row.id">
-                    <el-button size="small" type="primary" @click="startEditingPatient(scope.row)">编辑</el-button>
-                    <el-button size="small" type="danger" :loading="deleteLoading[scope.row.id]" @click="deletePatient(scope.$index, scope.row)">删除</el-button>
+                    <el-button size="small" type="primary" @click="startEditingPatient(scope.row)">Edit</el-button>
+                    <el-button size="small" type="danger" :loading="deleteLoading[scope.row.id]" @click="deletePatient(scope.$index, scope.row)">Delete</el-button>
                  </template>
                   <template v-else>
-                    <el-button size="small" type="success" :loading="updateLoading[scope.row.id]" @click="updatePatient(scope.$index, scope.row)">保存</el-button>
-                    <el-button size="small" type="info" @click="cancelEditingPatient(scope.row)">取消</el-button>
+                    <el-button size="small" type="success" :loading="updateLoading[scope.row.id]" @click="updatePatient(scope.$index, scope.row)">Save</el-button>
+                    <el-button size="small" type="info" @click="cancelEditingPatient(scope.row)">Cancel</el-button>
                  </template>
               </template>
             </el-table-column>
@@ -808,14 +808,14 @@ const registerDoctor = async () => {
     // 不再发送 Mock 认证头
     const response = await axios.post('/api/admin/doctors', registerForm, { headers: getMockAuthHeaders() });
     if (response.data && response.data.status === 201) {
-      ElMessage.success("医生注册成功！");
+      ElMessage.success("Doctor registration successful!");
       doctorsPagination.currentPage = 1;
       fetchDoctors(doctorSearchCriteria); // 注册成功后刷新列表并保留搜索条件
       Object.assign(registerForm, { password: "", name: "", phone: "", hospital: "", department: "" });
     } else if (response.data && response.data.status === 409) {
       ElMessage.warning(response.data.message || "用户名已存在！");
     } else {
-       ElMessage.error(response.data.message || "医生注册失败！");
+       ElMessage.error(response.data.message || "Doctor registration failed!");
     }
   } catch (error) {
     console.error("医生注册失败:", error);
@@ -1146,16 +1146,16 @@ const updateDoctor = async (index, row) => {
          // 不再发送 Mock 认证头
         const response = await axios.put(`/api/admin/doctors/${row.id}`, updatedData, { headers: getMockAuthHeaders() });
          if (response.data && response.data.status === 200) {
-             ElMessage.success("医生信息更新成功！");
+             ElMessage.success("Doctor information updated successfully!");
               // 刷新医生列表，保留搜索条件
              fetchDoctors(doctorSearchCriteria);
              stopEditingDoctor();
          } else {
-              ElMessage.error(response.data.message || "医生信息更新失败！");
+              ElMessage.error(response.data.message || "Doctor information update failed!");
          }
      } catch (error) {
-         console.error("更新医生信息失败:", error);
-         ElMessage.error("更新医生信息失败，请检查网络或服务器！");
+         console.error("Updating doctor information failed:", error);
+         ElMessage.error("Updating doctor information failed, please check network or server!");
      } finally {
          updateLoading.value[row.id] = false;
      }
@@ -1175,19 +1175,19 @@ const deleteDoctor = async (index, row) => {
              // 不再发送 Mock 认证头
             const response = await axios.delete(`/api/admin/doctors/${doctorToDelete.id}`, { headers: getMockAuthHeaders() });
              if (response.data && response.data.status === 204) { // 204 No Content
-                ElMessage.success("医生删除成功！");
+                ElMessage.success("Doctor deleted successfully!");
                 // 刷新医生列表，保留搜索条件，注意删除最后一页唯一一项的情况
                  if (doctors.value.length === 1 && doctorsPagination.currentPage > 1) {
                      doctorsPagination.currentPage--;
                  }
                  fetchDoctors(doctorSearchCriteria);
              } else {
-                 const errorMessage = response.data && response.data.message ? response.data.message : "医生删除失败！";
+                 const errorMessage = response.data && response.data.message ? response.data.message : "Doctor deletion failed!";
                  ElMessage.error(errorMessage);
              }
         } catch (error) {
-            console.error("删除医生失败:", error);
-            ElMessage.error("删除医生失败，请检查网络或服务器！");
+            console.error("Deleting doctor failed:", error);
+            ElMessage.error("Deleting doctor failed, please check network or server!");
         } finally {
              deleteLoading.value[row.id] = false;
         }
@@ -1240,16 +1240,16 @@ const updatePatient = async (index, row) => {
          // 不再发送 Mock 认证头
         const response = await axios.put(`/api/admin/patients/${row.id}`, updatedData, { headers: getMockAuthHeaders() });
          if (response.data && response.data.status === 200) {
-             ElMessage.success("患者信息更新成功！");
+             ElMessage.success("Patient information updated successfully!");
               // Refresh patient list, keeping search criteria
              fetchPatients(patientSearchCriteria);
              stopEditingPatient();
          } else {
-              ElMessage.error(response.data.message || "患者信息更新失败！");
+              ElMessage.error(response.data.message || "Patient information update failed!");
          }
      } catch (error) {
-         console.error("更新患者信息失败:", error);
-         ElMessage.error("更新患者信息失败，请检查网络或服务器！");
+         console.error("Updating patient information failed:", error);
+         ElMessage.error("Updating patient information failed, please check network or server!");
      } finally {
          updateLoading.value[row.id] = false;
      }
@@ -1269,19 +1269,19 @@ const deletePatient = async (index, row) => {
              // 不再发送 Mock 认证头
             const response = await axios.delete(`/api/admin/patients/${patientToDelete.id}`, { headers: getMockAuthHeaders() });
              if (response.data && response.data.status === 204) { // 204 No Content
-                ElMessage.success("患者删除成功！");
+                ElMessage.success("Patient deleted successfully!");
                 // Refresh patient list, keeping search criteria, handle deleting the last item on the last page
                  if (patientsData.value.length === 1 && patientsPagination.currentPage > 1) {
                      patientsPagination.currentPage--;
                  }
                  fetchPatients(patientSearchCriteria);
              } else {
-                 const errorMessage = response.data && response.data.message ? response.data.message : "患者删除失败！";
+                 const errorMessage = response.data && response.data.message ? response.data.message : "Patient deletion failed!";
                  ElMessage.error(errorMessage);
              }
         } catch (error) {
-            console.error("删除患者失败:", error);
-            ElMessage.error("删除患者失败，请检查网络或服务器！");
+            console.error("Deleting patient failed:", error);
+            ElMessage.error("Deleting patient failed, please check network or server!");
         } finally {
              deleteLoading.value[row.id] = false;
         }
@@ -1312,7 +1312,7 @@ const handleRelationDoctorChange = (row) => {
         row.doctorName = selectedDoctor.name;
    } else {
         // 如果没找到（理论上不会发生如果选项来自 remoteMethod），设置为未知
-        row.doctorName = '未知医生';
+        row.doctorName = 'Unknown Doctor';
    }
     // Note: This modification is local and temporary, it needs clicking save to submit to the backend
 };
@@ -1327,7 +1327,7 @@ const handleRelationPatientChange = (row) => {
          row.patientName = selectedPatient.name;
     } else {
          // 如果没找到（理论上不会发生如果选项来自 remoteMethod），设置为未知
-         row.patientName = '未知患者';
+         row.patientName = 'Unknown Patient';
     }
      // Note: This modification is local and temporary, it needs clicking save to submit to the backend
 };
