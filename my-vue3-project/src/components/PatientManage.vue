@@ -114,7 +114,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
+import axios from '../utils/axios';  // 使用自定义的 axios 实例
 import { useRouter, useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus'; // Keep ElMessage here
 
@@ -182,52 +182,39 @@ onMounted(() => {
 
 // 获取患者列表
 async function fetchPatients() {
-  // Prevent fetching if doctorId is missing
   if (!doctorId.value) return;
 
   isLoading.value = true;
   try {
-    const token = localStorage.getItem('token');
     const params = new URLSearchParams();
-
-    // 添加分页参数
     params.append('page', currentPage.value);
     params.append('pageSize', pageSize.value);
 
-    // 添加搜索参数（只添加非空值）
     if (searchParams.value.name) params.append('name', searchParams.value.name);
     if (searchParams.value.phone) params.append('phone', searchParams.value.phone);
     if (searchParams.value.gender) params.append('gender', searchParams.value.gender);
     if (searchParams.value.idNumber) params.append('idNumber', searchParams.value.idNumber);
 
-    // Include doctorId in the request URL
-    const res = await axios.get(`/api/doctors/${doctorId.value}/patients?${params.toString()}`, {
+    const response = await axios.get(`/api/doctors/${doctorId.value}/patients?${params.toString()}`, {
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
       }
     });
 
-    if (res.data.status === 200) {
-      // Assuming backend returns { status: 200, data: [...patients], total: N }
-      patients.value = res.data.data || [];
-      totalPatients.value = res.data.total || 0;
+    if (response.data.status === 200) {
+      patients.value = response.data.data || [];
+      totalPatients.value = response.data.total || 0;
 
-      // If current page is empty and it's not the first page, go back to the previous page
-      // This is needed if deleting the last item on a page or filtering results in no data
       if (patients.value.length === 0 && currentPage.value > 1) {
         currentPage.value -= 1;
-        // Refetch after changing page
         await fetchPatients();
       }
     } else {
-      // Handle backend errors with non-200 status
-      ElMessage.error(res.data.message || 'Failed to get patient list');
-      patients.value = [];
-      totalPatients.value = 0;
+      throw new Error(response.data.message || 'Failed to get patient list');
     }
-  } catch (err) {
-    // Handle network or other request errors
-    handleApiError(err);
+  } catch (error) {
+    handleApiError(error);
     patients.value = [];
     totalPatients.value = 0;
   } finally {
@@ -235,39 +222,33 @@ async function fetchPatients() {
   }
 }
 
-// 处理API错误
-function handleApiError(err) {
-  console.error("API Error:", err); // Log the full error for debugging
-  if (err.response) {
-    // The request was made and the server responded with a status code
-    // that falls out of the range of 2xx
-    switch (err.response.status) {
+// 处理 API 错误
+function handleApiError(error) {
+  console.error("API Error:", error);
+  if (error.response) {
+    switch (error.response.status) {
       case 401:
         ElMessage.error('Unauthorized access, please login again');
-        // router.push('/login'); // Redirect to login if 401
+        router.push('/');
         break;
       case 403:
         ElMessage.error('Insufficient permissions to view this resource');
         break;
       case 404:
-         // This might happen if the doctorId is invalid or the endpoint changes
         ElMessage.error('Resource or doctor not found');
         break;
       case 500:
-         ElMessage.error('Internal server error, please try again later');
-         break;
+        ElMessage.error('Internal server error, please try again later');
+        break;
       default:
-        ElMessage.error(`Request failed: ${err.response.status} - ${err.response.statusText}`);
+        ElMessage.error(`Request failed: ${error.response.status} - ${error.response.statusText}`);
     }
-  } else if (err.request) {
-    // The request was made but no response was received
+  } else if (error.request) {
     ElMessage.error('Unable to connect to server, please check your network');
   } else {
-    // Something happened in setting up the request that triggered an Error
-    ElMessage.error('Request setup error: ' + err.message);
+    ElMessage.error('Request setup error: ' + error.message);
   }
 }
-
 
 // 计算年龄
 function calculateAge(birthDate) {
@@ -322,20 +303,23 @@ function handleSizeChange(size) {
   fetchPatients(); // Fetch data with new page size
 }
 
-// 查看患者历史数据 - 跳转到患者详情页面
+// 查看患者历史数据
 function showHistoryData(patientId) {
   router.push({
-    name: 'PatientPage', // Make sure you have a route named 'PatientPage'
-    params: { id: patientId }, // Pass patientId as a route parameter
-    query: { doctorId: doctorId.value }, // Pass doctorId as a query parameter
+    name: 'PatientPage',
+    params: { id: patientId },
+    query: { doctorId: doctorId.value }
   });
 }
 
-// 跳转到测量数据页面 (蓝牙采集页面)
+// 跳转到测量数据页面
 function measureDataAction(patientId) {
   router.push({
-    name: 'BlueTooth', // Make sure you have a route named 'BlueTooth'
-    query: { patientId: patientId, doctorId: doctorId.value }, // Pass both IDs as query parameters
+    name: 'BlueTooth',
+    query: { 
+      patientId: patientId,
+      doctorId: doctorId.value
+    }
   });
 }
 </script>

@@ -407,8 +407,8 @@ function calculateAge(birthDate) {
     return currentYear - birthYear;
 }
 
-// Simulated API for getting patient reports /api/patient/:patientId/reports (GET)
-Mock.mock(/\/api\/patient\/(\d+)\/reports/, 'get', (options) => {
+// Simulated API for getting patient reports /api/patients/:patientId/reports (GET)
+Mock.mock(/\/api\/patients\/(\d+)\/reports/, 'get', (options) => {
   const patientId = options.url.split('/').reverse()[1];
   // ✅ Call modified permission check function, no parameters needed
   const authResult = checkAdminOrRelatedDoctor();
@@ -418,11 +418,23 @@ Mock.mock(/\/api\/patient\/(\d+)\/reports/, 'get', (options) => {
 
   // Directly get data from patientReports object
   const reports = patientReports[patientId] || [];
-   // No need to sort again here, as the data is hardcoded and can be kept in order
+  
+  // 转换数据结构以匹配前端组件期望的格式
+  const formattedReports = reports.map(report => ({
+    date: report.date,
+    type: report.type,
+    summary: report.summary || '',
+    analysisData: report.data?.reportData || {
+      '标准幅度': [10, 9, 10, 10, 9, 10, 10, 9, 10, 10, 9, 10],
+      '运动幅度': [9, 8, 9, 9, 8, 9, 9, 8, 9, 9, 8, 9],
+      '差值': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    }
+  }));
+
   return {
-      status: 200,
-      message: '获取报告成功',
-      data: reports
+    status: 200,
+    message: '获取报告成功',
+    data: formattedReports
   };
 });
 
@@ -1344,3 +1356,118 @@ console.log('Mock 服务已启动，使用固定1-12的测试数据')
 console.log('POST /api/upload/csv')
 console.log('PUT /api/report/:id')
 console.log('GET /api/reports/:id')
+
+
+
+// 模拟蓝牙数据上传接口
+Mock.mock('/api/patients/data', 'post', (options) => {
+  // 权限检查
+  const authResult = checkAdminOrRelatedDoctor();
+  if (authResult.status !== 200) {
+    return authResult;
+  }
+
+  try {
+    const formData = new FormData(options.body);
+    const patientId = formData.get('patientId');
+
+    if (!patientId) {
+      return {
+        status: 400,
+        message: '缺少患者ID'
+      };
+    }
+
+    // 生成新的报告ID
+    const reportId = Mock.mock('@increment').toString();
+
+    // 创建新的报告对象
+    const newReport = {
+      id: reportId,
+      date: new Date().toISOString(),
+      type: 'Initial Assessment',
+      summary: '',
+      data: {
+        reportData: generateFixedReportData()
+      }
+    };
+
+    // 将报告添加到患者的报告列表中
+    if (!patientReports[patientId]) {
+      patientReports[patientId] = [];
+    }
+    patientReports[patientId].unshift(newReport);
+
+    return {
+      status: 200,
+      message: '数据上传成功',
+      data: {
+        reportId: reportId,
+        reportData: newReport.data.reportData
+      }
+    };
+  } catch (error) {
+    console.error('处理数据上传失败:', error);
+    return {
+      status: 500,
+      message: '服务器处理数据失败'
+    };
+  }
+});
+
+// 模拟报告更新接口
+Mock.mock(/\/api\/patients\/(\d+)\/reports\/(\d+)/, 'put', (options) => {
+  // 权限检查
+  const authResult = checkAdminOrRelatedDoctor();
+  if (authResult.status !== 200) {
+    return authResult;
+  }
+
+  try {
+    // 从URL中提取patientId和reportId
+    const matches = options.url.match(/\/api\/patients\/(\d+)\/reports\/(\d+)/);
+    const patientId = matches[1];
+    const reportId = matches[2];
+
+    // 解析请求体
+    const body = JSON.parse(options.body);
+    const { type, summary } = body;
+
+    // 检查患者是否存在
+    if (!patientReports[patientId]) {
+      return {
+        status: 404,
+        message: '未找到该患者的报告'
+      };
+    }
+
+    // 查找并更新报告
+    const reportIndex = patientReports[patientId].findIndex(r => r.id === reportId);
+    if (reportIndex === -1) {
+      return {
+        status: 404,
+        message: '未找到指定的报告'
+      };
+    }
+
+    // 更新报告内容
+    patientReports[patientId][reportIndex] = {
+      ...patientReports[patientId][reportIndex],
+      type: type || patientReports[patientId][reportIndex].type,
+      summary: summary || patientReports[patientId][reportIndex].summary,
+      lastModified: new Date().toISOString()
+    };
+
+    return {
+      status: 200,
+      message: '报告更新成功',
+      data: patientReports[patientId][reportIndex]
+    };
+  } catch (error) {
+    console.error('更新报告失败:', error);
+    return {
+      status: 500,
+      message: '服务器处理失败'
+    };
+  }
+});

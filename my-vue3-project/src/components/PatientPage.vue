@@ -52,11 +52,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
+import axios from '../utils/axios';  // 使用自定义的 axios 实例
 import { useRouter, useRoute } from 'vue-router'; // 导入 useRouter
 import { ArrowLeft } from '@element-plus/icons-vue'; // 导入箭头图标组件
-// 如果你需要在无法返回时给用户提示，可以导入 ElMessage
-// import { ElMessage } from 'element-plus';
+import { ElMessage } from 'element-plus';
 
 
 const route = useRoute();
@@ -126,62 +125,58 @@ const showReportDetails = (row) => {
 // 方法定义：获取患者的历史报告列表
 const fetchPatientReports = async () => {
   try {
-    // 确保 patientId 存在再发起请求
     if (!patientId.value) {
-        console.warn('Patient ID is missing, cannot fetch reports.');
-        reports.value = [];
-        selectedReportData.value = null;
-        // 如果需要，给用户一个提示
-        // ElMessage.error('无法获取患者信息，请从医生管理页面进入');
-        return; // 中断执行
+      console.warn('Patient ID is missing, cannot fetch reports.');
+      reports.value = [];
+      selectedReportData.value = null;
+      return;
     }
 
-    const response = await axios.get(`/api/patient/${patientId.value}/reports`);
+    const response = await axios.get(`/api/patients/${patientId.value}/reports`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
     if (response.data && response.data.status === 200) {
-         reports.value = response.data.data || []; // 如果 data 是 null/undefined，使用空数组
+      reports.value = response.data.data.map(report => ({
+        date: report.date,
+        type: report.type,
+        summary: report.summary,
+        data: report.analysisData
+      }));
 
-         // 默认选中第一条报告，如果存在的话
-         if (reports.value.length > 0) {
-             // 可以选择按日期排序，确保最新或最早的报告被选中
-             // reports.value.sort((a, b) => new Date(b.date) - new Date(a.date)); // 按日期降序排序
-             selectedReportData.value = reports.value[0];
-         } else {
-             selectedReportData.value = null; // 没有报告时，清空详情显示
-         }
+      if (reports.value.length > 0) {
+        reports.value.sort((a, b) => new Date(b.date) - new Date(a.date));
+        selectedReportData.value = reports.value[0];
+      } else {
+        selectedReportData.value = null;
+      }
     } else {
-         console.error('获取患者报告失败:', response.data?.message);
-         reports.value = [];
-         selectedReportData.value = null;
-         // 可以根据需要显示错误消息
-         // ElMessage.error(response.data?.message || '获取患者报告失败');
+      throw new Error(response.data?.message || 'Failed to fetch patient reports');
     }
-
   } catch (error) {
-    console.error('获取患者报告失败:', error);
+    console.error('Failed to fetch patient reports:', error);
     reports.value = [];
     selectedReportData.value = null;
-     // 统一处理 API 错误，例如未授权、找不到等
-     // handleApiError(error); // 如果有统一的错误处理函数
+    ElMessage.error(error.response?.data?.message || 'Failed to fetch patient reports');
   }
 };
 
 
 // 方法定义：返回患者管理页面
 const goBackToPatientManage = () => {
-    // 只有当 doctorId 存在时才执行跳转
-    if (doctorId.value) {
-        router.push({
-            name: 'PatientManage', // 目标路由名称
-            params: { doctorId: doctorId.value } // 使用从路由参数获取的 doctorId
-        });
-    } else {
-        // 理论上如果按钮显示了，doctorId 就应该存在，
-        // 但作为备用处理，如果 doctorId 不存在，可以导航到其他页面或给出提示
-        console.warn("Doctor ID is missing, cannot navigate back to Patient Manage.");
-        // ElMessage.warning("Doctor information missing, cannot return to patient list page.");
-        // router.push('/'); // 例如：回首页
-    }
+  if (doctorId.value) {
+    router.push({
+      name: 'PatientManage',
+      query: { doctorId: doctorId.value }
+    });
+  } else {
+    console.warn("Doctor ID is missing, cannot navigate back to Patient Manage.");
+    ElMessage.warning("Unable to determine doctor information");
+    router.push('/');
+  }
 };
 
 

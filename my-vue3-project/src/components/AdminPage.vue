@@ -390,7 +390,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import axios from 'axios';
+import axios from '../utils/axios';  // 使用自定义的 axios 实例
 import { ElMessage, ElMessageBox } from 'element-plus';
 import debounce from 'lodash/debounce';
 
@@ -530,22 +530,21 @@ const fetchRelations = async (criteria = searchCriteria) => {
         pageSize: relationsPagination.pageSize,
         ...criteria // 搜索条件
     };
-     // 不再发送 Mock 认证头，因为后端暂时忽略
     const response = await axios.get('/api/admin/relations', { params, headers: getMockAuthHeaders() });
     if (response.data && response.data.status === 200) {
-      // Mock 返回的关系对象没有 id
-      relations.value = response.data.data;
-      relationsPagination.total = response.data.total;
+      // 确保即使返回空数据也初始化为空数组
+      relations.value = Array.isArray(response.data.data) ? response.data.data : [];
+      relationsPagination.total = response.data.total || 0;
     } else {
-      ElMessage.error(response.data.message || "加载关系失败！");
-       relations.value = [];
-       relationsPagination.total = 0;
+      ElMessage.error(response.data?.message || "加载关系失败！");
+      relations.value = [];
+      relationsPagination.total = 0;
     }
   } catch (error) {
     console.error("加载关系失败:", error);
     ElMessage.error("加载关系失败，请检查网络或服务器！");
-     relations.value = [];
-     relationsPagination.total = 0;
+    relations.value = [];
+    relationsPagination.total = 0;
   } finally {
     relationsLoading.value = false;
   }
@@ -575,26 +574,25 @@ const fetchDoctors = async (criteria = doctorSearchCriteria) => {
   doctorsLoading.value = true;
   try {
     const params = {
-         page: doctorsPagination.currentPage,
-         pageSize: doctorsPagination.pageSize,
-          // 将搜索条件添加到请求参数中
-         ...criteria
+      page: doctorsPagination.currentPage,
+      pageSize: doctorsPagination.pageSize,
+      ...criteria
     };
-    // 不再发送 Mock 认证头
     const response = await axios.get('/api/admin/doctors', { params, headers: getMockAuthHeaders() });
     if (response.data && response.data.status === 200) {
-      doctors.value = response.data.data;
-      doctorsPagination.total = response.data.total;
+      // 确保即使返回空数据也初始化为空数组
+      doctors.value = Array.isArray(response.data.data) ? response.data.data : [];
+      doctorsPagination.total = response.data.total || 0;
     } else {
-      ElMessage.error(response.data.message || "加载医生列表失败！");
-       doctors.value = [];
-       doctorsPagination.total = 0;
+      ElMessage.error(response.data?.message || "加载医生列表失败！");
+      doctors.value = [];
+      doctorsPagination.total = 0;
     }
   } catch (error) {
     console.error("加载医生列表失败:", error);
     ElMessage.error("加载医生列表失败，请检查网络或服务器！");
-     doctors.value = [];
-     doctorsPagination.total = 0;
+    doctors.value = [];
+    doctorsPagination.total = 0;
   } finally {
     doctorsLoading.value = false;
   }
@@ -621,32 +619,31 @@ const resetDoctorSearch = () => {
 
 // 获取患者列表（带分页和搜索，用于展示表格）
 const fetchPatients = async (criteria = patientSearchCriteria) => {
-    patientsLoading.value = true;
-    try {
-        const params = {
-            page: patientsPagination.currentPage,
-            pageSize: patientsPagination.pageSize,
-            ...criteria // 搜索条件
-        };
-        // 调用 GET /api/admin/patients 接口
-         // 不再发送 Mock 认证头
-        const response = await axios.get('/api/admin/patients', { params, headers: getMockAuthHeaders() });
-        if (response.data && response.data.status === 200) {
-            patientsData.value = response.data.data;
-            patientsPagination.total = response.data.total;
-        } else {
-            ElMessage.error(response.data.message || "加载患者列表失败！");
-            patientsData.value = [];
-            patientsPagination.total = 0;
-        }
-    } catch (error) {
-        console.error("加载患者列表失败:", error);
-        ElMessage.error("加载患者列表失败，请检查网络或服务器！");
-        patientsData.value = [];
-        patientsPagination.total = 0;
-    } finally {
-        patientsLoading.value = false;
+  patientsLoading.value = true;
+  try {
+    const params = {
+      page: patientsPagination.currentPage,
+      pageSize: patientsPagination.pageSize,
+      ...criteria
+    };
+    const response = await axios.get('/api/admin/patients', { params, headers: getMockAuthHeaders() });
+    if (response.data && response.data.status === 200) {
+      // 确保即使返回空数据也初始化为空数组
+      patientsData.value = Array.isArray(response.data.data) ? response.data.data : [];
+      patientsPagination.total = response.data.total || 0;
+    } else {
+      ElMessage.error(response.data?.message || "加载患者列表失败！");
+      patientsData.value = [];
+      patientsPagination.total = 0;
     }
+  } catch (error) {
+    console.error("加载患者列表失败:", error);
+    ElMessage.error("加载患者列表失败，请检查网络或服务器！");
+    patientsData.value = [];
+    patientsPagination.total = 0;
+  } finally {
+    patientsLoading.value = false;
+  }
 };
 
 // 触发患者表格搜索的方法
@@ -799,27 +796,33 @@ const handlePatientsCurrentChange = (newPage) => {
 
 // 注册医生
 const registerDoctor = async () => {
-  if (!registerForm.password || !registerForm.name || !registerForm.phone || !registerForm.hospital || !registerForm.department) {
-    ElMessage.warning("所有字段均不能为空！");
-    return;
-  }
   registerLoading.value = true;
   try {
-    // 不再发送 Mock 认证头
-    const response = await axios.post('/api/admin/doctors', registerForm, { headers: getMockAuthHeaders() });
-    if (response.data && response.data.status === 201) {
-      ElMessage.success("Doctor registration successful!");
-      doctorsPagination.currentPage = 1;
-      fetchDoctors(doctorSearchCriteria); // 注册成功后刷新列表并保留搜索条件
-      Object.assign(registerForm, { password: "", name: "", phone: "", hospital: "", department: "" });
-    } else if (response.data && response.data.status === 409) {
-      ElMessage.warning(response.data.message || "用户名已存在！");
+    const response = await axios.post('/api/admin/doctors', registerForm, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.status === 201) {
+      ElMessage.success('Doctor registered successfully');
+      // 重置表单
+      Object.assign(registerForm, {
+        name: '',
+        password: '',
+        phone: '',
+        hospital: '',
+        department: ''
+      });
+      // 刷新医生列表
+      fetchDoctors();
     } else {
-       ElMessage.error(response.data.message || "Doctor registration failed!");
+      throw new Error(response.data.message || 'Failed to register doctor');
     }
   } catch (error) {
-    console.error("医生注册失败:", error);
-    ElMessage.error("医生注册失败，请检查网络或服务器！");
+    console.error('Doctor registration failed:', error);
+    ElMessage.error(error.response?.data?.message || 'Failed to register doctor');
   } finally {
     registerLoading.value = false;
   }
@@ -1131,76 +1134,84 @@ const cancelEditingDoctor = (row) => {
 
 // 更新医生
 const updateDoctor = async (index, row) => {
-    // 可以根据需要添加字段校验，例如检查电话号码格式
-    const updatedData = {
-        name: row.name,
-        phone: row.phone,
-        hospital: row.hospital,
-        department: row.department,
-        // password: row.password, // 如果允许修改密码，需要加入此字段
-    };
-    // 💡 可选：检查哪些字段实际被修改了，只发送修改的字段
+    updateLoading.value = { ...updateLoading.value, [row.id]: true };
+    try {
+        const updatedData = {
+            name: row.name,
+            phone: row.phone,
+            hospital: row.hospital,
+            department: row.department
+        };
 
-    updateLoading.value = { ...updateLoading.value, [row.id]: true }; // Use row.id as key
-     try {
-         // 不再发送 Mock 认证头
-        const response = await axios.put(`/api/admin/doctors/${row.id}`, updatedData, { headers: getMockAuthHeaders() });
-         if (response.data && response.data.status === 200) {
-             ElMessage.success("Doctor information updated successfully!");
-              // 刷新医生列表，保留搜索条件
-             fetchDoctors(doctorSearchCriteria);
-             stopEditingDoctor();
-         } else {
-              ElMessage.error(response.data.message || "Doctor information update failed!");
-         }
-     } catch (error) {
-         console.error("Updating doctor information failed:", error);
-         ElMessage.error("Updating doctor information failed, please check network or server!");
-     } finally {
-         updateLoading.value[row.id] = false;
-     }
+        const response = await axios.put(`/api/admin/doctors/${row.id}`, updatedData, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.data.status === 200) {
+            ElMessage.success('Doctor information updated successfully');
+            fetchDoctors(doctorSearchCriteria);
+            stopEditingDoctor();
+        } else {
+            throw new Error(response.data.message || 'Failed to update doctor information');
+        }
+    } catch (error) {
+        console.error('Failed to update doctor information:', error);
+        ElMessage.error(error.response?.data?.message || 'Failed to update doctor information');
+    } finally {
+        updateLoading.value[row.id] = false;
+    }
 };
 
 // 删除医生
 const deleteDoctor = async (index, row) => {
-     const doctorToDelete = row;
+  const doctorToDelete = row;
 
-      ElMessageBox.confirm(`确定要删除医生 "${doctorToDelete.name}" 吗?`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }).then(async () => {
-        deleteLoading.value = { ...deleteLoading.value, [row.id]: true }; // Use row.id as key
-        try {
-             // 不再发送 Mock 认证头
-            const response = await axios.delete(`/api/admin/doctors/${doctorToDelete.id}`, { headers: getMockAuthHeaders() });
-             if (response.data && response.data.status === 204) { // 204 No Content
-                ElMessage.success("Doctor deleted successfully!");
-                // 刷新医生列表，保留搜索条件，注意删除最后一页唯一一项的情况
-                 if (doctors.value.length === 1 && doctorsPagination.currentPage > 1) {
-                     doctorsPagination.currentPage--;
-                 }
-                 fetchDoctors(doctorSearchCriteria);
-             } else {
-                 const errorMessage = response.data && response.data.message ? response.data.message : "Doctor deletion failed!";
-                 ElMessage.error(errorMessage);
-             }
-        } catch (error) {
-            console.error("Deleting doctor failed:", error);
-            ElMessage.error("Deleting doctor failed, please check network or server!");
-        } finally {
-             deleteLoading.value[row.id] = false;
-        }
-      }).catch(() => {
-          // User canceled deletion
-      });
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete doctor "${doctorToDelete.name}"?`,
+      'Warning',
+      {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }
+    );
+
+    deleteLoading.value = { ...deleteLoading.value, [row.id]: true };
+
+    const response = await axios.delete(`/api/admin/doctors/${doctorToDelete.id}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.status === 204) {
+      ElMessage.success('Doctor deleted successfully');
+      if (doctors.value.length === 1 && doctorsPagination.currentPage > 1) {
+        doctorsPagination.currentPage--;
+      }
+      fetchDoctors(doctorSearchCriteria);
+    } else {
+      throw new Error(response.data.message || 'Failed to delete doctor');
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Failed to delete doctor:', error);
+      ElMessage.error(error.response?.data?.message || 'Failed to delete doctor');
+    }
+  } finally {
+    deleteLoading.value[row.id] = false;
+  }
 };
-
 
 // 停止编辑医生行
 const stopEditingDoctor = () => {
-     editingDoctorId.value = null;
-      for (const key in originalDoctorEditingRow) {
+    editingDoctorId.value = null;
+    for (const key in originalDoctorEditingRow) {
         delete originalDoctorEditingRow[key];
     }
 };
@@ -1214,9 +1225,9 @@ const startEditingPatient = (row) => {
 
 // 取消编辑患者行
 const cancelEditingPatient = (row) => {
-     // 根据 id 查找原始数据并恢复
+    // 根据 id 查找原始数据并恢复
     const index = patientsData.value.findIndex(pat => pat.id === originalPatientEditingRow.id);
-     if (index !== -1) {
+    if (index !== -1) {
         Object.assign(patientsData.value[index], originalPatientEditingRow);
     }
     stopEditingPatient();
@@ -1224,77 +1235,85 @@ const cancelEditingPatient = (row) => {
 
 // 更新患者
 const updatePatient = async (index, row) => {
-    // 可以根据需要添加字段校验
-    const updatedData = {
-        name: row.name,
-        phone: row.phone,
-        gender: row.gender,
-        birthDate: row.birthDate,
-        idNumber: row.idNumber,
-        // password: row.password, // 如果允许修改密码，需要加入此字段
-    };
-    // 💡 可选：检查哪些字段实际被修改了，只发送修改的字段
+    updateLoading.value = { ...updateLoading.value, [row.id]: true };
+    try {
+        const updatedData = {
+            name: row.name,
+            phone: row.phone,
+            gender: row.gender,
+            birthDate: row.birthDate,
+            idNumber: row.idNumber
+        };
 
-    updateLoading.value = { ...updateLoading.value, [row.id]: true }; // Use row.id as key
-     try {
-         // 不再发送 Mock 认证头
-        const response = await axios.put(`/api/admin/patients/${row.id}`, updatedData, { headers: getMockAuthHeaders() });
-         if (response.data && response.data.status === 200) {
-             ElMessage.success("Patient information updated successfully!");
-              // Refresh patient list, keeping search criteria
-             fetchPatients(patientSearchCriteria);
-             stopEditingPatient();
-         } else {
-              ElMessage.error(response.data.message || "Patient information update failed!");
-         }
-     } catch (error) {
-         console.error("Updating patient information failed:", error);
-         ElMessage.error("Updating patient information failed, please check network or server!");
-     } finally {
-         updateLoading.value[row.id] = false;
-     }
+        const response = await axios.put(`/api/admin/patients/${row.id}`, updatedData, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.data.status === 200) {
+            ElMessage.success('Patient information updated successfully');
+            fetchPatients(patientSearchCriteria);
+            stopEditingPatient();
+        } else {
+            throw new Error(response.data.message || 'Failed to update patient information');
+        }
+    } catch (error) {
+        console.error('Failed to update patient information:', error);
+        ElMessage.error(error.response?.data?.message || 'Failed to update patient information');
+    } finally {
+        updateLoading.value[row.id] = false;
+    }
 };
 
 // 删除患者
 const deletePatient = async (index, row) => {
-     const patientToDelete = row;
+    const patientToDelete = row;
 
-      ElMessageBox.confirm(`确定要删除患者 "${patientToDelete.name}" 吗?`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }).then(async () => {
-        deleteLoading.value = { ...deleteLoading.value, [row.id]: true }; // Use row.id as key
-        try {
-             // 不再发送 Mock 认证头
-            const response = await axios.delete(`/api/admin/patients/${patientToDelete.id}`, { headers: getMockAuthHeaders() });
-             if (response.data && response.data.status === 204) { // 204 No Content
-                ElMessage.success("Patient deleted successfully!");
-                // Refresh patient list, keeping search criteria, handle deleting the last item on the last page
-                 if (patientsData.value.length === 1 && patientsPagination.currentPage > 1) {
-                     patientsPagination.currentPage--;
-                 }
-                 fetchPatients(patientSearchCriteria);
-             } else {
-                 const errorMessage = response.data && response.data.message ? response.data.message : "Patient deletion failed!";
-                 ElMessage.error(errorMessage);
-             }
-        } catch (error) {
-            console.error("Deleting patient failed:", error);
-            ElMessage.error("Deleting patient failed, please check network or server!");
-        } finally {
-             deleteLoading.value[row.id] = false;
+    try {
+        await ElMessageBox.confirm(
+            `Are you sure you want to delete patient "${patientToDelete.name}"?`,
+            'Warning',
+            {
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel',
+                type: 'warning'
+            }
+        );
+
+        deleteLoading.value = { ...deleteLoading.value, [row.id]: true };
+
+        const response = await axios.delete(`/api/admin/patients/${patientToDelete.id}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.data.status === 204) {
+            ElMessage.success('Patient deleted successfully');
+            if (patientsData.value.length === 1 && patientsPagination.currentPage > 1) {
+                patientsPagination.currentPage--;
+            }
+            fetchPatients(patientSearchCriteria);
+        } else {
+            throw new Error(response.data.message || 'Failed to delete patient');
         }
-      }).catch(() => {
-          // User canceled deletion
-      });
+    } catch (error) {
+        if (error !== 'cancel') {
+            console.error('Failed to delete patient:', error);
+            ElMessage.error(error.response?.data?.message || 'Failed to delete patient');
+        }
+    } finally {
+        deleteLoading.value[row.id] = false;
+    }
 };
-
 
 // 停止编辑患者行
 const stopEditingPatient = () => {
-     editingPatientId.value = null;
-      for (const key in originalPatientEditingRow) {
+    editingPatientId.value = null;
+    for (const key in originalPatientEditingRow) {
         delete originalPatientEditingRow[key];
     }
 };

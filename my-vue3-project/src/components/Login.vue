@@ -11,8 +11,8 @@
       <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="100px">
 
         <template v-if="!isRegistering">
-          <el-form-item label="Phone" prop="username">
-            <el-input v-model="loginForm.username" placeholder="Enter phone number" />
+          <el-form-item label="Username" prop="username">
+            <el-input v-model="loginForm.username" placeholder="Enter username" />
           </el-form-item>
         </template>
 
@@ -31,19 +31,19 @@
 
           <el-form-item label="Gender" prop="gender">
             <el-radio-group v-model="loginForm.gender">
-              <el-radio label="Male">Male</el-radio>
-              <el-radio label="Female">Female</el-radio>
+              <el-radio label="Male">男</el-radio>
+              <el-radio label="Female">女</el-radio>
             </el-radio-group>
           </el-form-item>
 
-          <el-form-item label="Birth Date" prop="birthdate">
-            <el-date-picker v-model="loginForm.birthdate" type="date" placeholder="Select birth date" style="width: 100%;" />
+          <el-form-item label="Birth Date" prop="birthDate">
+            <el-date-picker v-model="loginForm.birthDate" type="date" placeholder="Select birth date" style="width: 100%;" />
           </el-form-item>
 
           <el-form-item label="ID Type" prop="idType">
             <el-radio-group v-model="loginForm.idType">
-              <el-radio label="ID Card">ID Card</el-radio>
-              <el-radio label="Passport">Passport</el-radio>
+              <el-radio label="ID Card">身份证</el-radio>
+              <el-radio label="Passport">护照</el-radio>
             </el-radio-group>
           </el-form-item>
 
@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import axios from 'axios';
+import axios from '../utils/axios';
 import { ref, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
@@ -73,7 +73,7 @@ const loginForm = reactive({
   name: '',
   phone: '',
   gender: '',
-  birthdate: '',
+  birthDate: '',
   idType: '',
   idNumber: '',
 });
@@ -82,15 +82,48 @@ const isRegistering = ref(false);
 
 const loginRules = reactive({
   username: [
-    { required: computed(() => !isRegistering.value), message: 'Please enter username', trigger: 'blur' }
+    { required: computed(() => !isRegistering.value), message: '请输入用户名', trigger: 'blur' }
   ],
-  password: [{ required: true, message: 'Please enter password', trigger: 'blur' }],
-  name: [{ required: computed(() => isRegistering.value), message: 'Please enter name', trigger: 'blur' }],
-  phone: [{ required: computed(() => isRegistering.value), message: 'Please enter phone number', trigger: 'blur' }],
-  gender: [{ required: computed(() => isRegistering.value), message: 'Please select gender', trigger: 'change' }],
-  birthdate: [{ required: computed(() => isRegistering.value), message: 'Please select birth date', trigger: 'change' }],
-  idType: [{ required: computed(() => isRegistering.value), message: 'Please select ID type', trigger: 'change' }],
-  idNumber: [{ required: computed(() => isRegistering.value), message: 'Please enter ID number', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度至少为6个字符', trigger: 'blur' }
+  ],
+  name: [
+    { required: computed(() => isRegistering.value), message: '请输入姓名', trigger: 'blur' }
+  ],
+  phone: [
+    { required: computed(() => isRegistering.value), message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号', trigger: 'blur' }
+  ],
+  gender: [
+    { required: computed(() => isRegistering.value), message: '请选择性别', trigger: 'change' }
+  ],
+  birthDate: [
+    { required: computed(() => isRegistering.value), message: '请选择出生日期', trigger: 'change' }
+  ],
+  idType: [
+    { required: computed(() => isRegistering.value), message: '请选择证件类型', trigger: 'change' }
+  ],
+  idNumber: [
+    { required: computed(() => isRegistering.value), message: '请输入证件号码', trigger: 'blur' },
+    { 
+      validator: (rule, value, callback) => {
+        if (!isRegistering.value) {
+          callback();
+          return;
+        }
+        const idType = loginForm.idType;
+        if (idType === 'ID Card' && !/^\d{17}[\dX]$/.test(value)) {
+          callback(new Error('请输入有效的身份证号'));
+        } else if (idType === 'Passport' && !/^[A-Z]\d{8}$/.test(value)) {
+          callback(new Error('请输入有效的护照号'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
 });
 
 const loading = ref(false);
@@ -109,9 +142,9 @@ const handleSubmit = async () => {
             ? {
                 name: loginForm.name,
                 phone: loginForm.phone,
-                gender: loginForm.gender,
-                birthdate: loginForm.birthdate,
-                idType: loginForm.idType,
+                gender: loginForm.gender === 'Male' ? '男' : '女',
+                birthDate: loginForm.birthDate ? new Date(loginForm.birthDate).toISOString().split('T')[0] : '',
+                idType: loginForm.idType === 'ID Card' ? '身份证' : '护照',
                 idNumber: loginForm.idNumber,
                 password: loginForm.password
               }
@@ -126,11 +159,14 @@ const handleSubmit = async () => {
 
           if (response.status === 200 || response.status === 201) {
             if (isRegistering.value) {
-              ElMessage.success('Registration successful! Please login');
+              ElMessage.success('注册成功！请登录');
               toggleRegister();
             } else {
               const userData = response.data;
-              ElMessage.success(`Login successful! Welcome, ${userData.data.name || userData.data.username}!`);
+              if (userData.data.token) {
+                localStorage.setItem('token', userData.data.token);
+              }
+              ElMessage.success(`登录成功！欢迎，${userData.data.name || userData.data.username}！`);
               if (userData.data.isAdmin) {
                 router.push({ name: 'AdminPage' });
               } else if (userData.data.isDoctor) {
@@ -138,32 +174,32 @@ const handleSubmit = async () => {
               } else if (userData.data.isPatient) {
                 router.push({ name: 'PatientPage', params: { id: userData.data.id } });
               } else {
-                ElMessage.warning('Login successful, but unable to determine redirect page.');
+                ElMessage.warning('登录成功，但无法确定重定向页面。');
               }
             }
           }
         } catch (error) {
           console.error(error);
-          let errorMessage = 'Operation failed, please try again later';
+          let errorMessage = '操作失败，请稍后重试';
           if (error.response) {
             if (error.response.status === 401) {
-              errorMessage = isRegistering.value ? 'Invalid registration information' : 'Invalid username or password';
+              errorMessage = isRegistering.value ? '注册信息无效' : '用户名或密码错误';
             } else if (error.response.status === 409 && isRegistering.value) {
-              errorMessage = 'ID number already exists';
+              errorMessage = '身份证号已存在';
             } else if (error.response.data?.message) {
               errorMessage = error.response.data.message;
             } else {
-              errorMessage = `Server error (${error.response.status})`;
+              errorMessage = `服务器错误 (${error.response.status})`;
             }
           } else if (error.request) {
-            errorMessage = 'Network error, please check your connection';
+            errorMessage = '网络错误，请检查网络连接';
           }
           ElMessage.error(errorMessage);
         } finally {
           loading.value = false;
         }
       } else {
-        ElMessage.error('Please fill in all required information!');
+        ElMessage.error('请填写所有必填信息！');
       }
     });
   }
@@ -184,7 +220,7 @@ const resetForm = () => {
     name: '',
     phone: '',
     gender: '',
-    birthdate: '',
+    birthDate: '',
     idType: '',
     idNumber: '',
   });
