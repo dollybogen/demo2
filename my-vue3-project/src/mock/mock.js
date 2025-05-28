@@ -1233,9 +1233,9 @@ let reportCounter = 1
 
 // Fixed pattern report data generator
 const generateFixedReportData = () => ({
-  "标准幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-  "运动幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-  "差值": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  standardAmplitude: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  motionAmplitude: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  difference: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 })
 
 // Intercept CSV upload route
@@ -1272,7 +1272,7 @@ Mock.mock(/\/api\/upload\/csv/, 'post', (options) => {
       data: {
         receivedAt: reportData.receivedAt,
         reportId: reportData.reportId,
-        reportData: reportData.reportData  // Includes fixed 1-12 array
+        reportData: reportData.reportData  // Now includes standardAmplitude, motionAmplitude, difference
       },
       message: 'CSV 文件上传成功'
     }
@@ -1283,7 +1283,6 @@ Mock.mock(/\/api\/upload\/csv/, 'post', (options) => {
     })
   }
 })
-
 // Report update interface (unchanged)
 Mock.mock(/\/api\/report\/\w+/, 'put', (options) => {
   const urlParts = options.url.split('/')
@@ -1329,11 +1328,11 @@ Mock.mock(/\/api\/reports\/\w+/, 'get', (options) => {
     status: 200,
     data: {
       ...report,
-      // Ensure fixed 1-12 array is returned
+      // Ensure fixed array is returned with correct property names
       reportData: {
-        "标准幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        "运动幅度": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        "差值": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        standardAmplitude: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        motionAmplitude: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        difference: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
       }
     },
     message: '获取报告成功'
