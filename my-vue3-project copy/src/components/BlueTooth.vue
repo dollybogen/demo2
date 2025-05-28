@@ -261,7 +261,7 @@ import { ElMessage, ElLoading, ElMessageBox } from "element-plus";
 // Import Element Plus icon
 import { ArrowLeft } from '@element-plus/icons-vue';
 // Import throttle utility
-//import { throttle } from 'lodash-es';
+import { throttle } from 'lodash-es';
 
 const SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
 const READ_CHAR_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
@@ -299,6 +299,19 @@ const imuDataArray = ref({
     return [...this.data].reverse().slice(start, end);
   }
 });
+
+// Throttled UI update function (from Code 1)
+const throttledUpdateDisplay = throttle(() => {
+  // During collection, show only the last N data points (adjust N as needed for table height)
+  // After stopping, show all collected data from rawImuData
+  imuDataArray.value.data = isCollecting.value
+    ? rawImuData.value.slice(-500) // Showing more data points now
+    : [...rawImuData.value]; // Spread to ensure reactivity updates
+
+  // Optional: Reset pagination when data changes
+  // imuDataArray.value.currentPage = 0; // Can be jarring during live updates
+}, 200); // Update display data at most every 200ms
+
 
 // Report and Analysis state (from Code 2)
 const reportId = ref(null); // ID of the created report on the backend
@@ -366,6 +379,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // Disconnect devices and cancel throttled updates on component unmount
   stopAllDevices();
+  throttledUpdateDisplay.cancel();
 });
 
 
@@ -436,36 +450,59 @@ async function connectSingleDevice() {
 
 // Handles incoming BLE data notifications (Core fast processing logic from Code 1)
 function handleData(event, deviceId) {
-  // 只在采集状态下处理数据
+  // Only process data if collection is active
   if (!isCollecting.value) return;
 
-  const value = event.target.value;
-  const bytes = new Uint8Array(value.buffer);
-  const device = devices.value.find(d => d.id === deviceId);
+  const value = event.target.value; // DataView containing the received bytes
+  const bytes = new Uint8Array(value.buffer); // Convert DataView buffer to Uint8Array
+  const device = devices.value.find(d => d.id === deviceId); // Find the corresponding device object
   if (!device) return;
 
-  // 处理所有接收到的字节
+  // Process all bytes received in this notification event
   for (const byte of bytes) {
-    device.tempBytes.push(byte);
+    device.tempBytes.push(byte); // Add the current byte to the device's buffer
 
+    // Packet start validation (0x55 header) - logic from Code 1
+    // If buffer has only one byte and it's not 0x55, discard it.
     if (device.tempBytes.length === 1 && device.tempBytes[0] !== 0x55) {
       device.tempBytes.shift();
       continue;
     }
 
+    // Packet type validation (0x61 for data) - logic from Code 1 (slightly simplified)
+    // If buffer has two bytes and the second is not 0x61, discard the first byte (0x55) and the second.
+    // This assumes 0x55 is only followed by 0x61 for data packets we care about here.
+    // The logic here is slightly less robust than Code 2's enhanced check but matches Code 1's original.
     if (device.tempBytes.length === 2 && device.tempBytes[1] !== 0x61) {
-      device.tempBytes.shift();
-      device.tempBytes.shift();
-      continue;
+       // If 0x55 is not followed by 0x61, discard 0x55 and the next byte
+       device.tempBytes.shift(); // Discard 0x55
+       device.tempBytes.shift(); // Discard the byte that wasn't 0x61
+       continue;
     }
 
+
+    // If the buffer has accumulated enough bytes for a full packet (20 bytes)
     if (device.tempBytes.length === 20) {
+      // Process the complete 20-byte packet
       const data = processDataPacket(device.tempBytes, device);
-      if (data) {
-        rawImuData.value.push(data);
+      if (data) { // Ensure data was successfully processed
+         rawImuData.value.push(data); // Add processed data to the main raw data array
+         device.lastData = data; // Update last data for display in device list
+
+         // *** CRITICAL FOR SPEED (from Code 1): Trigger throttled UI update ***
+         // This function limits how often the main data table and related computed props update,
+         // preventing the UI from blocking the BLE notification handler.
+         throttledUpdateDisplay();
       }
+
+      // Clear the buffer after processing a packet (logic from Code 1)
       device.tempBytes = [];
+      // Note: Code 1's buffer clearing is simple. Code 2 had more robust slicing
+      // which might be better if packets can be concatenated in a single notification.
+      // Sticking to Code 1's original clear for maximum compatibility with its speed.
     }
+     // Note: Code 1 did not have explicit buffer overflow check > 20 bytes within the loop
+     // This might be a slight risk if malformed packets arrive, but keeping it simple like Code 1 for speed.
   }
 }
 
@@ -527,23 +564,17 @@ function startDataCollection() {
     ElMessage.warning("Please connect at least 1 device!");
     return;
   }
-  if (isCollecting.value) {
-    ElMessage.warning("Already collecting!");
-    return;
-  }
+   if (isCollecting.value) { // Prevent starting if already collecting
+     ElMessage.warning("Already collecting!");
+     return;
+   }
 
   isCollecting.value = true;
-  rawImuData.value = [];
-  imuDataArray.value.data = [];
-  imuDataArray.value.currentPage = 0;
-/*
-  // Add loading animation during collection
-  const loading = ElLoading.service({
-    lock: true,
-    text: 'Collecting data...',
-    background: 'rgba(0, 0, 0, 0.7)'
-  });
-*/
+  rawImuData.value = []; // Clear raw data for the new session
+  // imuDataArray.value.data will be updated by the throttled function during collection
+  imuDataArray.value.data = []; // Clear displayed data initially
+  imuDataArray.value.currentPage = 0; // Reset pagination
+
   ElMessage.success("Started data collection...");
 }
 
@@ -553,42 +584,29 @@ function stopDataCollection() {
     ElMessage.info("Not currently collecting data");
     return;
   }
-  isCollecting.value = false;
+  isCollecting.value = false; // Set collecting state to false
 
-  // Show loading while processing data
-  const loadingInstance = ElLoading.service({
-    lock: true,
-    text: 'Processing collected data...',
-    background: 'rgba(0, 0, 0, 0.7)'
-  });
-
-  try {
-    if (rawImuData.value.length > 0) {
-      // Use setTimeout to allow loading animation to show and prevent UI blocking
-      setTimeout(() => {
-        collectedDataSets.value.push([...rawImuData.value]);
-        collectionCount.value += 1;
-        
-        // Only update display data after collection stops
-        imuDataArray.value.data = [...rawImuData.value];
-        imuDataArray.value.currentPage = 0;
-
-        loadingInstance.close();
-        ElMessage.success(`Collection ${collectionCount.value} completed, collected ${rawImuData.value.length} records`);
-        
-        if (collectionCount.value >= 2) {
-          ElMessage.info(`Completed ${collectionCount.value} collections, data can be uploaded`);
-        }
-      }, 500);
-    } else {
-      loadingInstance.close();
+  // *** Added from Code 2: Save a snapshot of collected data and increment count ***
+  if (rawImuData.value.length > 0) {
+     collectedDataSets.value.push([...rawImuData.value]); // Store a copy of the current raw data
+     collectionCount.value += 1; // Increment collection count
+     ElMessage.success(`Collection ${collectionCount.value} completed, collected ${rawImuData.value.length} records`);
+      if (collectionCount.value >= 2) {
+        ElMessage.info(`Completed ${collectionCount.value} collections, data can be uploaded`);
+      }
+  } else {
       ElMessage.warning("Collection stopped, no data collected this time.");
-    }
-  } catch (error) {
-    loadingInstance.close();
-    console.error('Error processing collected data:', error);
-    ElMessage.error('Error processing collected data');
   }
+  // *** End added from Code 2 ***
+
+
+  // Update the displayed data array with ALL collected data after stopping (from Code 1)
+  // This makes the full dataset available for pagination and export via imuDataArray
+  imuDataArray.value.data = [...rawImuData.value];
+  imuDataArray.value.currentPage = 0; // Reset pagination to the first page
+
+  // Cancel any pending throttled display updates
+  throttledUpdateDisplay.cancel();
 }
 
 // Handles device disconnection event (using logic similar to Code 2 for UI update)
@@ -951,6 +969,9 @@ function clearData() {
       customReportTypeName.value = ''; // Clear custom type
       doctorComment.value = ''; // Clear doctor comment
       showRawData.value = false; // Reset analysis view toggle
+
+      // Cancel any pending throttled update calls
+      throttledUpdateDisplay.cancel();
 
       ElMessage.success("所有数据和报告信息已清空");
     })
